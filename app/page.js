@@ -20,6 +20,7 @@ export default function Home() {
   const [showJournalModal, setShowJournalModal] = useState(false)
   const [editingEntry, setEditingEntry] = useState(null)
   const [currentEntryIndex, setCurrentEntryIndex] = useState(-1)
+  const [currentEntryData, setCurrentEntryData] = useState(null)
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -199,6 +200,19 @@ export default function Home() {
     }, 150)
   }
 
+  const closeJournalModalWithSave = async (entryData) => {
+    const dataToSave = entryData || currentEntryData
+    if (dataToSave) {
+      try {
+        await addEntry(dataToSave)
+      } catch (error) {
+        console.error('Failed to save entry when closing modal:', error)
+      }
+    }
+    setCurrentEntryData(null)
+    closeJournalModal()
+  }
+
   const navigateToNextEntry = () => {
     if (currentEntryIndex < entries.length - 1) {
       const nextIndex = currentEntryIndex + 1
@@ -295,7 +309,7 @@ export default function Home() {
           <div 
             className="fixed inset-0 top-0 left-0 right-0 bottom-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-start justify-center z-[9999] p-4 pt-8" 
             style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
-            onClick={closeJournalModal}
+            onClick={() => closeJournalModalWithSave()}
           >
                       <div 
               className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-md rounded-lg max-w-4xl w-full h-[75vh] border border-white/20 dark:border-gray-600/20 shadow-2xl flex flex-col"
@@ -308,7 +322,8 @@ export default function Home() {
                   imageComments={imageComments}
                   onUpdateImageComment={updateImageComment}
                   editingEntry={editingEntry}
-                  onClose={closeJournalModal}
+                  onClose={closeJournalModalWithSave}
+                  onUpdateEntryData={setCurrentEntryData}
                   currentEntryIndex={currentEntryIndex}
                   totalEntries={entries.length}
                   onNavigateNext={navigateToNextEntry}

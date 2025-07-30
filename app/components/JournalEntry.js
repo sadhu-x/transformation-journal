@@ -159,7 +159,7 @@ const MarkdownEditor = ({ value, onChange, placeholder, fieldId, onFocus }) => {
   )
 }
 
-export default function JournalEntry({ onAddEntry, onOpenImageModal, imageComments, onUpdateImageComment, editingEntry, onClose, currentEntryIndex, totalEntries, onNavigateNext, onNavigatePrevious }) {
+export default function JournalEntry({ onAddEntry, onOpenImageModal, imageComments, onUpdateImageComment, editingEntry, onClose, onUpdateEntryData, currentEntryIndex, totalEntries, onNavigateNext, onNavigatePrevious }) {
   const [entry, setEntry] = useState({
     activity: '',
     gratitude: '',
@@ -641,6 +641,13 @@ ${entryJson}
     resetTimer()
   }, [activeTab])
 
+  // Update parent component with current entry data
+  useEffect(() => {
+    if (onUpdateEntryData) {
+      onUpdateEntryData(entry)
+    }
+  }, [entry, onUpdateEntryData])
+
   const formatButtons = [
     { icon: Bold, label: 'Bold', action: () => insertMarkdownToFocusedField('**', '**') },
     { icon: Italic, label: 'Italic', action: () => insertMarkdownToFocusedField('*', '*') },
@@ -816,7 +823,7 @@ ${entryJson}
             {onClose && (
               <button
                 type="button"
-                onClick={onClose}
+                onClick={() => onClose(entry)}
                 className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 p-1"
                 title="Close"
               >
