@@ -46,7 +46,47 @@ const MarkdownEditor = ({ value, onChange, placeholder, fieldId, onFocus }) => {
   const textareaRef = useRef(null)
 
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
+    if (e.key === 'Tab') {
+      e.preventDefault()
+      const textarea = e.target
+      const start = textarea.selectionStart
+      const end = textarea.selectionEnd
+      const selectedText = value.substring(start, end)
+      
+      if (e.shiftKey) {
+        // Shift+Tab: Unindent
+        const lines = selectedText.split('\n')
+        const unindentedLines = lines.map(line => {
+          // Remove one level of indentation (2 spaces or 1 tab)
+          if (line.startsWith('  ')) {
+            return line.substring(2)
+          } else if (line.startsWith('\t')) {
+            return line.substring(1)
+          }
+          return line
+        })
+        const newText = value.substring(0, start) + unindentedLines.join('\n') + value.substring(end)
+        onChange(newText)
+        
+        // Restore selection
+        setTimeout(() => {
+          const newEnd = start + unindentedLines.join('\n').length
+          textarea.setSelectionRange(start, newEnd)
+        }, 0)
+      } else {
+        // Tab: Indent
+        const lines = selectedText.split('\n')
+        const indentedLines = lines.map(line => '  ' + line)
+        const newText = value.substring(0, start) + indentedLines.join('\n') + value.substring(end)
+        onChange(newText)
+        
+        // Restore selection
+        setTimeout(() => {
+          const newEnd = start + indentedLines.join('\n').length
+          textarea.setSelectionRange(start, newEnd)
+        }, 0)
+      }
+    } else if (e.key === 'Enter') {
       const textarea = e.target
       const cursorPos = textarea.selectionStart
       const textBeforeCursor = value.substring(0, cursorPos)
