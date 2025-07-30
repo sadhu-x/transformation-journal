@@ -140,6 +140,7 @@ export default function JournalEntry({ onAddEntry, onOpenImageModal, imageCommen
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [focusedField, setFocusedField] = useState(null)
   const [tooltip, setTooltip] = useState({ show: false, text: '', x: 0, y: 0 })
+  const [timer, setTimer] = useState({ isRunning: false, timeLeft: 300, duration: 300 }) // 5 minutes default
   const fileInputRef = useRef(null)
   const dropZoneRef = useRef(null)
 
@@ -499,6 +500,49 @@ ${entryJson}
     setTooltip({ show: false, text: '', x: 0, y: 0 })
   }
 
+  // Timer functions
+  const startTimer = () => {
+    setTimer(prev => ({ ...prev, isRunning: true }))
+  }
+
+  const pauseTimer = () => {
+    setTimer(prev => ({ ...prev, isRunning: false }))
+  }
+
+  const resetTimer = () => {
+    setTimer(prev => ({ ...prev, isRunning: false, timeLeft: prev.duration }))
+  }
+
+  const setTimerDuration = (minutes) => {
+    const seconds = minutes * 60
+    setTimer(prev => ({ 
+      ...prev, 
+      duration: seconds, 
+      timeLeft: prev.isRunning ? prev.timeLeft : seconds 
+    }))
+  }
+
+  // Timer effect
+  useEffect(() => {
+    let interval = null
+    if (timer.isRunning && timer.timeLeft > 0) {
+      interval = setInterval(() => {
+        setTimer(prev => ({
+          ...prev,
+          timeLeft: prev.timeLeft - 1
+        }))
+      }, 1000)
+    } else if (timer.timeLeft === 0) {
+      setTimer(prev => ({ ...prev, isRunning: false }))
+    }
+    return () => clearInterval(interval)
+  }, [timer.isRunning, timer.timeLeft])
+
+  // Reset timer when tab changes
+  useEffect(() => {
+    resetTimer()
+  }, [activeTab])
+
   const formatButtons = [
     { icon: Bold, label: 'Bold', action: () => insertMarkdownToFocusedField('**', '**') },
     { icon: Italic, label: 'Italic', action: () => insertMarkdownToFocusedField('*', '*') },
@@ -521,6 +565,12 @@ ${entryJson}
       surrender: surrenderLevels
     }
     return scales[scale][value] || value
+  }
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins}:${secs.toString().padStart(2, '0')}`
   }
 
                 const ScaleInput = ({ label, value, onChange, scaleType, icon: Icon, color = "blue", tooltips }) => {
@@ -642,19 +692,66 @@ ${entryJson}
           </button>
         </div>
 
-        {/* Center - Entry info */}
+        {/* Center - Timer */}
         <div className="flex items-center gap-3">
-          <Clock size={16} className="text-purple-600" />
-          <span className="text-sm text-gray-500 dark:text-gray-400">
-            {editingEntry && editingEntry.timestamp 
-              ? new Date(editingEntry.timestamp).toLocaleString()
-              : currentTime
-            }
-          </span>
+          <div className="flex items-center gap-2">
+            <Clock size={16} className="text-purple-600" />
+            <span className={`text-sm font-mono ${timer.timeLeft <= 60 ? 'text-red-500' : 'text-gray-500 dark:text-gray-400'}`}>
+              {formatTime(timer.timeLeft)}
+            </span>
+          </div>
+          <div className="flex items-center gap-1">
+            {!timer.isRunning ? (
+              <button
+                type="button"
+                onClick={startTimer}
+                className="p-1 text-green-500 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300"
+                title="Start timer"
+              >
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                </svg>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={pauseTimer}
+                className="p-1 text-yellow-500 hover:text-yellow-700 dark:text-yellow-400 dark:hover:text-yellow-300"
+                title="Pause timer"
+              >
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={resetTimer}
+              className="p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              title="Reset timer"
+            >
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         {/* Right side - Actions */}
         <div className="flex items-center gap-2">
+          <select
+            value={timer.duration / 60}
+            onChange={(e) => setTimerDuration(parseInt(e.target.value))}
+            className="text-xs bg-transparent border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-gray-600 dark:text-gray-400 focus:outline-none focus:ring-1 focus:ring-purple-500"
+            title="Timer duration"
+          >
+            <option value={1}>1 min</option>
+            <option value={3}>3 min</option>
+            <option value={5}>5 min</option>
+            <option value={10}>10 min</option>
+            <option value={15}>15 min</option>
+            <option value={30}>30 min</option>
+          </select>
           <button
             type="button"
             onClick={copyEntryAsJson}
