@@ -202,13 +202,26 @@ export default function Home() {
 
   const closeJournalModalWithSave = async (entryData) => {
     const dataToSave = entryData || currentEntryData
+    
+    // Check if there's actual content to save
     if (dataToSave) {
-      try {
-        await addEntry(dataToSave)
-      } catch (error) {
-        console.error('Failed to save entry when closing modal:', error)
+      const hasContent = dataToSave.activity?.trim() || 
+                        dataToSave.gratitude?.trim() || 
+                        dataToSave.presence?.trim() || 
+                        dataToSave.insights?.trim() || 
+                        dataToSave.wishFulfilled?.trim() || 
+                        dataToSave.aiResponse?.trim() ||
+                        (dataToSave.attachments && dataToSave.attachments.length > 0)
+      
+      if (hasContent) {
+        try {
+          await addEntry(dataToSave)
+        } catch (error) {
+          console.error('Failed to save entry when closing modal:', error)
+        }
       }
     }
+    
     setCurrentEntryData(null)
     closeJournalModal()
   }
