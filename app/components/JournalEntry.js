@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { generateInstructionTemplate } from '../../lib/dataService'
 import { supabase } from '../../lib/supabase'
-import { Plus, Clock, Brain, Heart, TrendingUp, Zap, ChevronDown, Paperclip, Link, X, Image as ImageIcon, FileText, Scale, Heart as HeartIcon, Lightbulb, Paperclip as PaperclipIcon, AlertTriangle, Copy, Bold, Italic, List, ListOrdered, Heading1, Heading2, Quote, Code, Link as LinkIcon, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Plus, Clock, Brain, Heart, TrendingUp, Zap, ChevronDown, Paperclip, Link, X, Image as ImageIcon, FileText, Scale, Heart as HeartIcon, Lightbulb, Paperclip as PaperclipIcon, AlertTriangle, Copy, Bold, Italic, List, ListOrdered, Heading1, Heading2, Quote, Code, Link as LinkIcon, ChevronLeft, ChevronRight, Upload, Target, Eye, Sun, Shield } from 'lucide-react'
 
 const energyLevels = ['Depleted', 'Low', 'Moderate', 'Good', 'High', 'Peak', 'Transcendent']
 const clarityLevels = ['Foggy', 'Unclear', 'Somewhat Clear', 'Clear', 'Very Clear', 'Crystal Clear', 'Illuminated']
@@ -141,6 +141,8 @@ export default function JournalEntry({ onAddEntry, onOpenImageModal, imageCommen
   const [focusedField, setFocusedField] = useState(null)
   const [tooltip, setTooltip] = useState({ show: false, text: '', x: 0, y: 0 })
   const [timer, setTimer] = useState({ isRunning: false, timeLeft: 300, duration: 300 }) // 5 minutes default
+  const [showCopyModal, setShowCopyModal] = useState(false)
+  const [copyData, setCopyData] = useState('')
   const fileInputRef = useRef(null)
   const dropZoneRef = useRef(null)
 
@@ -440,11 +442,30 @@ ${entryJson}
         }
       } catch (execError) {
         console.error('Fallback copy method failed:', execError)
-        // Last resort: show the text in an alert or modal
-        setCopyFeedback('Copy failed - check console')
-        setTimeout(() => setCopyFeedback(null), 2000)
-        console.log('Copy failed. Here is the entry data:')
-        console.log(contextTemplate)
+        // Last resort: create downloadable file
+        try {
+          const blob = new Blob([contextTemplate], { type: 'text/plain' })
+          const url = URL.createObjectURL(blob)
+          const a = document.createElement('a')
+          a.href = url
+          a.download = `journal-entry-${new Date().toISOString().split('T')[0]}.txt`
+          document.body.appendChild(a)
+          a.click()
+          document.body.removeChild(a)
+          URL.revokeObjectURL(url)
+          
+          setCopyFeedback('Downloaded as file!')
+          setTimeout(() => setCopyFeedback(null), 3000)
+          console.log('Entry downloaded as file successfully')
+        } catch (downloadError) {
+          console.error('Download fallback also failed:', downloadError)
+          // Final fallback: show in modal
+          setCopyData(contextTemplate)
+          setShowCopyModal(true)
+          setCopyFeedback('Showing in modal')
+          setTimeout(() => setCopyFeedback(null), 2000)
+          console.log('All copy methods failed. Showing data in modal.')
+        }
       } finally {
         document.body.removeChild(textarea)
       }
@@ -610,532 +631,591 @@ ${entryJson}
     return `${mins}:${secs.toString().padStart(2, '0')}`
   }
 
-                const ScaleInput = ({ label, value, onChange, scaleType, icon: Icon, color = "blue", tooltips }) => {
-                const [showTooltip, setShowTooltip] = useState(false)
-                const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 })
+  const ScaleInput = ({ label, value, onChange, scaleType, icon: Icon, color = "blue", tooltips }) => {
+    const [showTooltip, setShowTooltip] = useState(false)
+    const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 })
 
-                const handleMouseEnter = (e) => {
-                  if (tooltips) {
-                    const rect = e.target.getBoundingClientRect()
-                    setTooltipPosition({
-                      x: rect.left + rect.width / 2,
-                      y: rect.top - 5
-                    })
-                    setShowTooltip(true)
-                  }
-                }
+    const handleMouseEnter = (e) => {
+      if (tooltips) {
+        const rect = e.target.getBoundingClientRect()
+        setTooltipPosition({
+          x: rect.left + rect.width / 2,
+          y: rect.top - 5
+        })
+        setShowTooltip(true)
+      }
+    }
 
-                const handleMouseLeave = () => {
-                  setShowTooltip(false)
-                }
+    const handleMouseLeave = () => {
+      setShowTooltip(false)
+    }
 
-                return (
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Icon size={16} className={color === 'blue' ? 'text-blue-600 dark:text-blue-400' : color === 'purple' ? 'text-purple-600 dark:text-purple-400' : 'text-gray-600 dark:text-gray-400'} />
-                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{label}</label>
-                    </div>
-                    <div className="space-y-1">
-                      <input
-                        type="range"
-                        min="0"
-                        max="6"
-                        value={value}
-                        onChange={(e) => onChange(parseInt(e.target.value))}
-                      />
-                      <div className="text-xs text-center text-gray-600 dark:text-gray-400 relative">
-                        <span
-                          onMouseEnter={handleMouseEnter}
-                          onMouseLeave={handleMouseLeave}
-                        >
-                          {getScaleLabel(value, scaleType)} ({value}/6)
-                        </span>
-                        {showTooltip && tooltips && (
-                          <div
-                            className="absolute z-50 px-3 py-2 text-sm text-white bg-gray-900 rounded-lg shadow-lg whitespace-nowrap"
-                            style={{
-                              left: '50%',
-                              top: '25px',
-                              transform: 'translateX(-50%)'
-                            }}
-                          >
-                            {tooltips[value]}
-                            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-transparent border-b-gray-900"></div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )
-              }
+    return (
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <Icon size={16} className={color === 'blue' ? 'text-blue-600 dark:text-blue-400' : color === 'purple' ? 'text-purple-600 dark:text-purple-400' : 'text-gray-600 dark:text-gray-400'} />
+          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{label}</label>
+        </div>
+        <div className="space-y-1">
+          <input
+            type="range"
+            min="0"
+            max="6"
+            value={value}
+            onChange={(e) => onChange(parseInt(e.target.value))}
+          />
+          <div className="text-xs text-center text-gray-600 dark:text-gray-400 relative">
+            <span
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+            >
+              {getScaleLabel(value, scaleType)} ({value}/6)
+            </span>
+            {showTooltip && tooltips && (
+              <div
+                className="absolute z-50 px-3 py-2 text-sm text-white bg-gray-900 rounded-lg shadow-lg whitespace-nowrap"
+                style={{
+                  left: '50%',
+                  top: '25px',
+                  transform: 'translateX(-50%)'
+                }}
+              >
+                {tooltips[value]}
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-transparent border-b-gray-900"></div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm h-full flex flex-col">
-      {/* Copy feedback notification */}
-      {copyFeedback && (
-        <div className={`fixed top-4 right-4 z-50 px-4 py-2 rounded-md shadow-lg transition-all duration-300 ${
-          copyFeedback === 'Copied!' 
-            ? 'bg-green-500 text-white' 
-            : 'bg-red-500 text-white'
-        }`}>
-          {copyFeedback}
-        </div>
-      )}
+    <>
+      <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm h-full flex flex-col">
+        {/* Copy feedback notification */}
+        {copyFeedback && (
+          <div className={`fixed top-4 right-4 z-50 px-4 py-2 rounded-md shadow-lg transition-all duration-300 ${
+            copyFeedback === 'Copied!' 
+              ? 'bg-green-500 text-white' 
+              : 'bg-red-500 text-white'
+          }`}>
+            {copyFeedback}
+          </div>
+        )}
 
-      {/* Custom Tooltip */}
-      {tooltip.show && createPortal(
-        <div 
-          className="fixed z-[9999] px-3 py-2 text-sm bg-gray-900 dark:bg-gray-700 text-white dark:text-gray-200 rounded-md shadow-lg border border-gray-600 dark:border-gray-500 pointer-events-none transition-opacity duration-200 whitespace-nowrap"
-          style={{
-            left: tooltip.x,
-            top: tooltip.y,
-            transform: 'translateX(-50%) translateY(-100%)'
-          }}
-        >
-          {tooltip.text}
-          <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900 dark:border-t-gray-700"></div>
-        </div>,
-        document.body
-      )}
-      {/* Header with navigation */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-        {/* Left side - Navigation arrows */}
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={onNavigatePrevious}
-            disabled={currentEntryIndex <= 0}
-            className={`p-2 rounded-md transition-colors ${
-              currentEntryIndex <= 0
-                ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
-                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
-            }`}
-            title="Previous entry"
+        {/* Custom Tooltip */}
+        {tooltip.show && createPortal(
+          <div 
+            className="fixed z-[9999] px-3 py-2 text-sm bg-gray-900 dark:bg-gray-700 text-white dark:text-gray-200 rounded-md shadow-lg border border-gray-600 dark:border-gray-500 pointer-events-none transition-opacity duration-200 whitespace-nowrap"
+            style={{
+              left: tooltip.x,
+              top: tooltip.y,
+              transform: 'translateX(-50%) translateY(-100%)'
+            }}
           >
-            <ChevronLeft size={20} />
-          </button>
-          <button
-            type="button"
-            onClick={onNavigateNext}
-            disabled={currentEntryIndex >= totalEntries - 1}
-            className={`p-2 rounded-md transition-colors ${
-              currentEntryIndex >= totalEntries - 1
-                ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
-                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
-            }`}
-            title="Next entry"
-          >
-            <ChevronRight size={20} />
-          </button>
-        </div>
+            {tooltip.text}
+            <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900 dark:border-t-gray-700"></div>
+          </div>,
+          document.body
+        )}
 
-        {/* Center - Entry info */}
-        <div className="flex items-center gap-3">
-          <Clock size={16} className="text-purple-600" />
-          <span className="text-sm text-gray-500 dark:text-gray-400">
-            {editingEntry && editingEntry.timestamp 
-              ? new Date(editingEntry.timestamp).toLocaleString()
-              : currentTime
-            }
-          </span>
-        </div>
-
-        {/* Right side - Actions */}
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={copyEntryAsJson}
-            className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 p-1"
-            title="Copy as JSON"
-          >
-            <Copy size={16} />
-          </button>
-          {onClose && (
+        {/* Header with navigation */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+          {/* Left side - Navigation arrows */}
+          <div className="flex items-center gap-1">
             <button
               type="button"
-              onClick={onClose}
-              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 p-1"
-              title="Close"
+              onClick={onNavigatePrevious}
+              disabled={currentEntryIndex <= 0}
+              className={`p-2 rounded-md transition-colors ${
+                currentEntryIndex <= 0
+                  ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+              title="Previous entry"
             >
-              <X size={20} />
+              <ChevronLeft size={20} />
             </button>
-          )}
-        </div>
-      </div>
+            <button
+              type="button"
+              onClick={onNavigateNext}
+              disabled={currentEntryIndex >= totalEntries - 1}
+              className={`p-2 rounded-md transition-colors ${
+                currentEntryIndex >= totalEntries - 1
+                  ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+              title="Next entry"
+            >
+              <ChevronRight size={20} />
+            </button>
+          </div>
 
-      {/* Tab Navigation */}
-      <div className="flex justify-between items-center px-4 pt-3 pb-2">
-        <div className="flex gap-4">
-          {tabs.map((tab) => {
-            const IconComponent = tab.icon
-            return (
+          {/* Center - Entry info */}
+          <div className="flex items-center gap-3">
+            <Clock size={16} className="text-purple-600" />
+            <span className="text-sm text-gray-500 dark:text-gray-400">
+              {editingEntry && editingEntry.timestamp 
+                ? new Date(editingEntry.timestamp).toLocaleString()
+                : currentTime
+              }
+            </span>
+          </div>
+
+          {/* Right side - Actions */}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={copyEntryAsJson}
+              className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 p-1"
+              title="Copy as JSON"
+            >
+              <Copy size={16} />
+            </button>
+            {onClose && (
               <button
-                key={tab.id}
                 type="button"
-                onClick={() => setActiveTab(tab.id)}
-                onMouseEnter={(e) => showTooltip(tab.name, e)}
-                onMouseLeave={hideTooltip}
-                className={`flex items-center justify-center w-8 h-8 rounded-md transition-colors ${
-                  activeTab === tab.id
-                    ? 'text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20'
-                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                onClick={onClose}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 p-1"
+                title="Close"
+              >
+                <X size={20} />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="flex justify-between items-center px-4 pt-3 pb-2">
+          <div className="flex gap-4">
+            {tabs.map((tab) => {
+              const IconComponent = tab.icon
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveTab(tab.id)}
+                  onMouseEnter={(e) => showTooltip(tab.name, e)}
+                  onMouseLeave={hideTooltip}
+                  className={`flex items-center justify-center w-8 h-8 rounded-md transition-colors ${
+                    activeTab === tab.id
+                      ? 'text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20'
+                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  <IconComponent size={16} />
+                </button>
+              )
+            })}
+          </div>
+          
+          {/* Formatting Toolbar */}
+          <div className="flex items-center gap-1 p-1 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+            {formatButtons.map((button, index) => (
+              <button
+                key={index}
+                type="button"
+                onClick={button.action}
+                className="p-1.5 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors"
+                title={button.label}
+              >
+                <button.icon className="h-4 w-4" />
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Tab Content */}
+        <div className="p-6 flex-1 flex flex-col overflow-hidden">
+          {/* Tab 0: Review of Activities */}
+          {activeTab === 0 && (
+            <div className="flex flex-col h-full">
+              <div className="mb-4">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Review of Activities</label>
+              </div>
+              <div className="flex-1 mb-6">
+                <MarkdownEditor
+                  value={entry.activity}
+                  onChange={(value) => setEntry({...entry, activity: value})}
+                  placeholder="What activities have you been doing? (e.g., morning routine, work session, exercise, meditation, social interactions, etc.)"
+                  fieldId="activity"
+                  onFocus={handleFieldFocus}
+                />
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <ScaleInput
+                  label="Discipline"
+                  value={entry.tradingMindset}
+                  onChange={(value) => setEntry({...entry, tradingMindset: value})}
+                  scaleType="discipline"
+                  icon={TrendingUp}
+                  color="amber"
+                  tooltips={disciplineTooltips}
+                />
+                <ScaleInput
+                  label="Surrender"
+                  value={entry.spiritualState}
+                  onChange={(value) => setEntry({...entry, spiritualState: value})}
+                  scaleType="surrender"
+                  icon={Zap}
+                  color="indigo"
+                  tooltips={surrenderTooltips}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Tab 1: Gratitude */}
+          {activeTab === 1 && (
+            <div className="flex flex-col h-full">
+              <div className="mb-4">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Gratitude and Love</label>
+              </div>
+              <div className="flex-1">
+                <MarkdownEditor
+                  value={entry.gratitude}
+                  onChange={(value) => setEntry({...entry, gratitude: value})}
+                  placeholder="What are you grateful for right now? What blessings, people, experiences, or moments are you appreciating?"
+                  fieldId="gratitude"
+                  onFocus={handleFieldFocus}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Tab 2: Pain */}
+          {activeTab === 2 && (
+            <div className="flex flex-col h-full">
+              <div className="mb-4">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Pain and Challenges</label>
+              </div>
+              <div className="flex-1">
+                <MarkdownEditor
+                  value={entry.pain}
+                  onChange={(value) => setEntry({...entry, pain: value})}
+                  placeholder="What pain, discomfort, or blockages are you experiencing? What feels heavy, stuck, or challenging? Allow yourself to acknowledge and accept these feelings."
+                  fieldId="pain"
+                  onFocus={handleFieldFocus}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Tab 3: Insights & Next Steps */}
+          {activeTab === 3 && (
+            <div className="flex flex-col h-full">
+              <div className="mb-4">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Insights and Next Steps</label>
+              </div>
+              <div className="flex-1">
+                <MarkdownEditor
+                  value={entry.insight}
+                  onChange={(value) => setEntry({...entry, insight: value})}
+                  placeholder="Any awareness, understanding, or realizations emerging? What patterns, truths, or wisdom are you discovering? What are your next steps or intentions?"
+                  fieldId="insight"
+                  onFocus={handleFieldFocus}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Tab 6: AI Response */}
+          {activeTab === 6 && (
+            <div className="flex flex-col h-full">
+              <div className="mb-4">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">AI Response</label>
+              </div>
+              <div className="flex-1">
+                <MarkdownEditor
+                  value={entry.aiResponse}
+                  onChange={(value) => setEntry({...entry, aiResponse: value})}
+                  placeholder="Paste your AI response here... This could be insights from ChatGPT, Claude, or any other AI assistant that you want to record and reflect on."
+                  fieldId="aiResponse"
+                  onFocus={handleFieldFocus}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Tab 4: Wish Fulfilled */}
+          {activeTab === 4 && (
+            <div className="flex flex-col h-full">
+              <div className="mb-4">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Wish Fulfilled</label>
+              </div>
+              <div className="flex-1">
+                <MarkdownEditor
+                  value={entry.wishFulfilled}
+                  onChange={(value) => setEntry({...entry, wishFulfilled: value})}
+                  placeholder="Write as if your wish has already been fulfilled. Feel the emotions, see the details, experience the reality of having what you desire. What does it feel like to have achieved this? What are you doing, seeing, experiencing? Use present tense and vivid sensory details."
+                  fieldId="wishFulfilled"
+                  onFocus={handleFieldFocus}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Tab 5: Attachments & Links */}
+          {activeTab === 5 && (
+            <div className="space-y-4">
+              {/* Drag & Drop Zone */}
+              <div
+                ref={dropZoneRef}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                  isDragOver 
+                    ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20' 
+                    : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
                 }`}
               >
-                <IconComponent size={16} />
-              </button>
-            )
-          })}
-        </div>
-        
-        {/* Formatting Toolbar */}
-        <div className="flex items-center gap-1 p-1 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
-          {formatButtons.map((button, index) => (
-            <button
-              key={index}
-              type="button"
-              onClick={button.action}
-              className="p-1.5 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors"
-              title={button.label}
-            >
-              <button.icon className="h-4 w-4" />
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Tab Content */}
-      <div className="px-6 pt-2 pb-6 flex-1 flex flex-col overflow-hidden">
-        {/* Tab 0: Review of Activities */}
-        {activeTab === 0 && (
-          <div className="flex flex-col h-full">
-            <div className="mb-4">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Review of Activities</label>
-            </div>
-            <div className="flex-1 mb-6">
-              <MarkdownEditor
-                value={entry.activity}
-                onChange={(value) => setEntry({...entry, activity: value})}
-                placeholder="What activities have you been doing? (e.g., morning routine, work session, exercise, meditation, social interactions, etc.)"
-                fieldId="activity"
-                onFocus={handleFieldFocus}
-              />
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <ScaleInput
-                label="Discipline"
-                value={entry.tradingMindset}
-                onChange={(value) => setEntry({...entry, tradingMindset: value})}
-                scaleType="discipline"
-                icon={TrendingUp}
-                color="amber"
-                tooltips={disciplineTooltips}
-              />
-              <ScaleInput
-                label="Surrender"
-                value={entry.spiritualState}
-                onChange={(value) => setEntry({...entry, spiritualState: value})}
-                scaleType="surrender"
-                icon={Zap}
-                color="indigo"
-                tooltips={surrenderTooltips}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Tab 1: Gratitude */}
-        {activeTab === 1 && (
-          <div className="flex flex-col h-full">
-            <div className="mb-4">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Gratitude and Love</label>
-            </div>
-            <div className="flex-1">
-              <MarkdownEditor
-                value={entry.gratitude}
-                onChange={(value) => setEntry({...entry, gratitude: value})}
-                placeholder="What are you grateful for right now? What blessings, people, experiences, or moments are you appreciating?"
-                fieldId="gratitude"
-                onFocus={handleFieldFocus}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Tab 2: Pain */}
-        {activeTab === 2 && (
-          <div className="flex flex-col h-full">
-            <div className="mb-4">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Pain and Challenges</label>
-            </div>
-            <div className="flex-1">
-              <MarkdownEditor
-                value={entry.pain}
-                onChange={(value) => setEntry({...entry, pain: value})}
-                placeholder="What pain, discomfort, or blockages are you experiencing? What feels heavy, stuck, or challenging? Allow yourself to acknowledge and accept these feelings."
-                fieldId="pain"
-                onFocus={handleFieldFocus}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Tab 3: Insights & Next Steps */}
-        {activeTab === 3 && (
-          <div className="flex flex-col h-full">
-            <div className="mb-4">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Insights and Next Steps</label>
-            </div>
-            <div className="flex-1">
-              <MarkdownEditor
-                value={entry.insight}
-                onChange={(value) => setEntry({...entry, insight: value})}
-                placeholder="Any awareness, understanding, or realizations emerging? What patterns, truths, or wisdom are you discovering? What are your next steps or intentions?"
-                fieldId="insight"
-                onFocus={handleFieldFocus}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Tab 6: AI Response */}
-        {activeTab === 6 && (
-          <div className="flex flex-col h-full">
-            <div className="mb-4">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">AI Response</label>
-            </div>
-            <div className="flex-1">
-              <MarkdownEditor
-                value={entry.aiResponse}
-                onChange={(value) => setEntry({...entry, aiResponse: value})}
-                placeholder="Paste your AI response here... This could be insights from ChatGPT, Claude, or any other AI assistant that you want to record and reflect on."
-                fieldId="aiResponse"
-                onFocus={handleFieldFocus}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Tab 4: Wish Fulfilled */}
-        {activeTab === 4 && (
-          <div className="flex flex-col h-full">
-            <div className="mb-4">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Wish Fulfilled</label>
-            </div>
-            <div className="flex-1">
-              <MarkdownEditor
-                value={entry.wishFulfilled}
-                onChange={(value) => setEntry({...entry, wishFulfilled: value})}
-                placeholder="Write as if your wish has already been fulfilled. Feel the emotions, see the details, experience the reality of having what you desire. What does it feel like to have achieved this? What are you doing, seeing, experiencing? Use present tense and vivid sensory details."
-                fieldId="wishFulfilled"
-                onFocus={handleFieldFocus}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Tab 5: Attachments & Links */}
-        {activeTab === 5 && (
-          <div className="space-y-4">
-            {/* Drag & Drop Zone */}
-            <div
-              ref={dropZoneRef}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-                isDragOver 
-                  ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20' 
-                  : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
-              }`}
-            >
-              <ImageIcon size={24} className={`mx-auto mb-2 ${isDragOver ? 'text-purple-500' : 'text-gray-400 dark:text-gray-500'}`} />
-              <p className={`text-sm ${isDragOver ? 'text-purple-700 dark:text-purple-300' : 'text-gray-500 dark:text-gray-400'}`}>
-                {isDragOver ? 'Drop images here' : 'Drag & drop images here, or'}
-              </p>
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="mt-2 text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 text-sm font-medium underline"
-              >
-                browse files
-              </button>
-            </div>
-            
-            {/* Attachment Controls */}
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setShowLinkInput(true)}
-                className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-200"
-              >
-                <Link size={14} className="text-gray-600 dark:text-gray-300" />
-                Add Link
-              </button>
-            </div>
-
-            {/* Hidden file input */}
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              accept="image/*"
-              onChange={handleImageUpload}
-              className="hidden"
-            />
-
-            {/* Link input */}
-            {showLinkInput && (
+                <ImageIcon size={24} className={`mx-auto mb-2 ${isDragOver ? 'text-purple-500' : 'text-gray-400 dark:text-gray-500'}`} />
+                <p className={`text-sm ${isDragOver ? 'text-purple-700 dark:text-purple-300' : 'text-gray-500 dark:text-gray-400'}`}>
+                  {isDragOver ? 'Drop images here' : 'Drag & drop images here, or'}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="mt-2 text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 text-sm font-medium underline"
+                >
+                  browse files
+                </button>
+              </div>
+              
+              {/* Attachment Controls */}
               <div className="flex gap-2">
-                <input
-                  type="url"
-                  value={newLink}
-                  onChange={(e) => setNewLink(e.target.value)}
-                  placeholder="Enter URL..."
-                  className="flex-1 p-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                />
                 <button
                   type="button"
-                  onClick={handleLinkAdd}
-                  className="px-3 py-2 text-sm bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
+                  onClick={() => setShowLinkInput(true)}
+                  className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-200"
                 >
-                  Add
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowLinkInput(false)
-                    setNewLink('')
-                  }}
-                  className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-200"
-                >
-                  Cancel
+                  <Link size={14} className="text-gray-600 dark:text-gray-300" />
+                  Add Link
                 </button>
               </div>
-            )}
 
-            {/* Attachments List */}
-            {attachments.length > 0 && (
-              <div className="space-y-3">
-                {/* Image Thumbnails */}
-                {attachments.filter(att => att.type === 'image').length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {attachments.filter(att => att.type === 'image').map((attachment) => (
-                      <div key={attachment.id} className="relative group">
-                        <img
-                          src={attachment.data}
-                          alt="Uploaded image"
-                          className="w-32 h-32 object-cover rounded-md border border-gray-200 dark:border-gray-600 cursor-pointer hover:opacity-80 transition-opacity"
-                          onClick={() => onOpenImageModal(attachment)}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeAttachment(attachment.id)}
-                          className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <X size={10} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                
-                {/* Link Attachments */}
-                {attachments.filter(att => att.type === 'link').map((attachment) => (
-                  <div key={attachment.id} className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-700 rounded-md">
-                    <Link size={16} className="text-green-500" />
-                    <span className="flex-1 text-sm truncate text-gray-700 dark:text-gray-200">
-                      {attachment.url}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => removeAttachment(attachment.id)}
-                      className="text-red-500 hover:text-red-700 dark:hover:text-red-400 p-1"
-                    >
-                      <X size={14} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+              {/* Hidden file input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden"
+              />
 
-      {/* Submit Button */}
-      <div className="px-6 py-4 flex justify-between items-center border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 flex-shrink-0">
-        <div className="flex-1 flex items-center gap-4">
-          {currentEntryIndex >= 0 && totalEntries > 0 && (
-            <span className="text-sm text-gray-500 dark:text-gray-400">
-              {currentEntryIndex + 1} of {totalEntries}
-            </span>
-          )}
-          
-          {/* Timer */}
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1">
-              <Clock size={14} className="text-purple-600" />
-              <span className={`text-sm font-mono ${timer.timeLeft <= 60 ? 'text-red-500' : 'text-gray-500 dark:text-gray-400'}`}>
-                {formatTime(timer.timeLeft)}
-              </span>
-            </div>
-            <div className="flex items-center gap-1">
-              {!timer.isRunning ? (
-                <button
-                  type="button"
-                  onClick={startTimer}
-                  className="p-1 text-green-500 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300"
-                  title="Start timer"
-                >
-                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
-                  </svg>
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={pauseTimer}
-                  className="p-1 text-yellow-500 hover:text-yellow-700 dark:text-yellow-400 dark:hover:text-yellow-300"
-                  title="Pause timer"
-                >
-                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                </button>
+              {/* Link input */}
+              {showLinkInput && (
+                <div className="flex gap-2">
+                  <input
+                    type="url"
+                    value={newLink}
+                    onChange={(e) => setNewLink(e.target.value)}
+                    placeholder="Enter URL..."
+                    className="flex-1 p-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleLinkAdd}
+                    className="px-3 py-2 text-sm bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
+                  >
+                    Add
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowLinkInput(false)
+                      setNewLink('')
+                    }}
+                    className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-200"
+                  >
+                    Cancel
+                  </button>
+                </div>
               )}
+
+              {/* Attachments List */}
+              {attachments.length > 0 && (
+                <div className="space-y-3">
+                  {/* Image Thumbnails */}
+                  {attachments.filter(att => att.type === 'image').length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {attachments.filter(att => att.type === 'image').map((attachment) => (
+                        <div key={attachment.id} className="relative group">
+                          <img
+                            src={attachment.data}
+                            alt="Uploaded image"
+                            className="w-32 h-32 object-cover rounded-md border border-gray-200 dark:border-gray-600 cursor-pointer hover:opacity-80 transition-opacity"
+                            onClick={() => onOpenImageModal(attachment)}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeAttachment(attachment.id)}
+                            className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X size={10} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {/* Link Attachments */}
+                  {attachments.filter(att => att.type === 'link').map((attachment) => (
+                    <div key={attachment.id} className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-700 rounded-md">
+                      <Link size={16} className="text-green-500" />
+                      <span className="flex-1 text-sm truncate text-gray-700 dark:text-gray-200">
+                        {attachment.url}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => removeAttachment(attachment.id)}
+                        className="text-red-500 hover:text-red-700 dark:hover:text-red-400 p-1"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Submit Button */}
+        <div className="px-6 py-4 flex justify-between items-center border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 flex-shrink-0">
+          <div className="flex-1 flex items-center gap-4">
+            {currentEntryIndex >= 0 && totalEntries > 0 && (
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                {currentEntryIndex + 1} of {totalEntries}
+              </span>
+            )}
+            
+            {/* Timer */}
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
+                <Clock size={14} className="text-purple-600" />
+                <span className={`text-sm font-mono ${timer.timeLeft <= 60 ? 'text-red-500' : 'text-gray-500 dark:text-gray-400'}`}>
+                  {formatTime(timer.timeLeft)}
+                </span>
+              </div>
+              <div className="flex items-center gap-1">
+                {!timer.isRunning ? (
+                  <button
+                    type="button"
+                    onClick={startTimer}
+                    className="p-1 text-green-500 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300"
+                    title="Start timer"
+                  >
+                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={pauseTimer}
+                    className="p-1 text-yellow-500 hover:text-yellow-700 dark:text-yellow-400 dark:hover:text-yellow-300"
+                    title="Pause timer"
+                  >
+                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={resetTimer}
+                  className="p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                  title="Reset timer"
+                >
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+                  </svg>
+                </button>
+              </div>
+              <select
+                value={timer.duration / 60}
+                onChange={(e) => setTimerDuration(parseInt(e.target.value))}
+                className="text-xs bg-transparent border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-gray-600 dark:text-gray-400 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                title="Timer duration"
+              >
+                <option value={1}>1m</option>
+                <option value={3}>3m</option>
+                <option value={5}>5m</option>
+                <option value={10}>10m</option>
+                <option value={15}>15m</option>
+                <option value={30}>30m</option>
+              </select>
+            </div>
+          </div>
+          <button
+            type="submit"
+            className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 px-6 rounded-md hover:from-purple-700 hover:to-blue-700 transition-all duration-200 font-medium"
+          >
+            Submit
+          </button>
+        </div>
+      </form>
+
+      {/* Copy Data Modal */}
+      {showCopyModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[80vh] flex flex-col">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Journal Entry Data
+              </h3>
               <button
                 type="button"
-                onClick={resetTimer}
-                className="p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                title="Reset timer"
+                onClick={() => setShowCopyModal(false)}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
               >
-                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
-                </svg>
+                <X size={20} />
               </button>
             </div>
-            <select
-              value={timer.duration / 60}
-              onChange={(e) => setTimerDuration(parseInt(e.target.value))}
-              className="text-xs bg-transparent border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-gray-600 dark:text-gray-400 focus:outline-none focus:ring-1 focus:ring-purple-500"
-              title="Timer duration"
-            >
-              <option value={1}>1m</option>
-              <option value={3}>3m</option>
-              <option value={5}>5m</option>
-              <option value={10}>10m</option>
-              <option value={15}>15m</option>
-              <option value={30}>30m</option>
-            </select>
+            <div className="flex-1 overflow-auto">
+              <textarea
+                value={copyData}
+                readOnly
+                className="w-full h-full p-4 text-sm font-mono bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-md resize-none"
+                style={{ minHeight: '400px' }}
+              />
+            </div>
+            <div className="flex justify-end gap-2 mt-4">
+              <button
+                type="button"
+                onClick={() => {
+                  const textarea = document.querySelector('textarea[readonly]')
+                  if (textarea) {
+                    textarea.select()
+                    try {
+                      document.execCommand('copy')
+                      setCopyFeedback('Copied from modal!')
+                      setTimeout(() => setCopyFeedback(null), 2000)
+                    } catch (e) {
+                      console.error('Copy from modal failed:', e)
+                    }
+                  }
+                }}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              >
+                Copy Text
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowCopyModal(false)}
+                className="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
-        <button
-          type="submit"
-          className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 px-6 rounded-md hover:from-purple-700 hover:to-blue-700 transition-all duration-200 font-medium"
-        >
-          Submit
-        </button>
-      </div>
-    </form>
+      )}
+    </>
   )
 } 
