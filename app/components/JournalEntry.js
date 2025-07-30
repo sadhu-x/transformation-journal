@@ -405,13 +405,50 @@ ${entryJson}
 
 ---`
 
-      await navigator.clipboard.writeText(contextTemplate)
+      // Try modern clipboard API first
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        try {
+          await navigator.clipboard.writeText(contextTemplate)
+          setCopyFeedback('Copied!')
+          setTimeout(() => setCopyFeedback(null), 2000)
+          console.log('Entry copied to clipboard successfully')
+          return
+        } catch (clipboardError) {
+          console.warn('Modern clipboard API failed, trying fallback:', clipboardError)
+        }
+      }
+
+      // Fallback: Create temporary textarea and copy
+      const textarea = document.createElement('textarea')
+      textarea.value = contextTemplate
+      textarea.style.position = 'fixed'
+      textarea.style.left = '-9999px'
+      textarea.style.top = '-9999px'
+      document.body.appendChild(textarea)
       
-      // Show success feedback
-      setCopyFeedback('Copied!')
-      setTimeout(() => setCopyFeedback(null), 2000)
+      textarea.select()
+      textarea.setSelectionRange(0, 99999) // For mobile devices
       
-      console.log('Entry copied to clipboard successfully')
+      try {
+        const successful = document.execCommand('copy')
+        if (successful) {
+          setCopyFeedback('Copied!')
+          setTimeout(() => setCopyFeedback(null), 2000)
+          console.log('Entry copied to clipboard using fallback method')
+        } else {
+          throw new Error('execCommand copy failed')
+        }
+      } catch (execError) {
+        console.error('Fallback copy method failed:', execError)
+        // Last resort: show the text in an alert or modal
+        setCopyFeedback('Copy failed - check console')
+        setTimeout(() => setCopyFeedback(null), 2000)
+        console.log('Copy failed. Here is the entry data:')
+        console.log(contextTemplate)
+      } finally {
+        document.body.removeChild(textarea)
+      }
+      
     } catch (error) {
       console.error('Failed to copy entry:', error)
       setCopyFeedback('Copy failed')
