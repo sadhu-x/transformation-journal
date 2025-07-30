@@ -570,9 +570,9 @@ ${entryJson}
     
     setEntry(prev => ({ ...prev, [focusedField]: newText }))
     
-    // Set cursor position and maintain selection
+    // Set cursor position without selection
     setTimeout(() => {
-      textarea.setSelectionRange(start, newCursorPos)
+      textarea.setSelectionRange(newCursorPos, newCursorPos)
       textarea.focus()
     }, 0)
   }
