@@ -692,66 +692,19 @@ ${entryJson}
           </button>
         </div>
 
-        {/* Center - Timer */}
+        {/* Center - Entry info */}
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <Clock size={16} className="text-purple-600" />
-            <span className={`text-sm font-mono ${timer.timeLeft <= 60 ? 'text-red-500' : 'text-gray-500 dark:text-gray-400'}`}>
-              {formatTime(timer.timeLeft)}
-            </span>
-          </div>
-          <div className="flex items-center gap-1">
-            {!timer.isRunning ? (
-              <button
-                type="button"
-                onClick={startTimer}
-                className="p-1 text-green-500 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300"
-                title="Start timer"
-              >
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
-                </svg>
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={pauseTimer}
-                className="p-1 text-yellow-500 hover:text-yellow-700 dark:text-yellow-400 dark:hover:text-yellow-300"
-                title="Pause timer"
-              >
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                </svg>
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={resetTimer}
-              className="p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-              title="Reset timer"
-            >
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
-              </svg>
-            </button>
-          </div>
+          <Clock size={16} className="text-purple-600" />
+          <span className="text-sm text-gray-500 dark:text-gray-400">
+            {editingEntry && editingEntry.timestamp 
+              ? new Date(editingEntry.timestamp).toLocaleString()
+              : currentTime
+            }
+          </span>
         </div>
 
         {/* Right side - Actions */}
         <div className="flex items-center gap-2">
-          <select
-            value={timer.duration / 60}
-            onChange={(e) => setTimerDuration(parseInt(e.target.value))}
-            className="text-xs bg-transparent border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-gray-600 dark:text-gray-400 focus:outline-none focus:ring-1 focus:ring-purple-500"
-            title="Timer duration"
-          >
-            <option value={1}>1 min</option>
-            <option value={3}>3 min</option>
-            <option value={5}>5 min</option>
-            <option value={10}>10 min</option>
-            <option value={15}>15 min</option>
-            <option value={30}>30 min</option>
-          </select>
           <button
             type="button"
             onClick={copyEntryAsJson}
@@ -1074,12 +1027,70 @@ ${entryJson}
 
       {/* Submit Button */}
       <div className="px-6 py-4 flex justify-between items-center border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 flex-shrink-0">
-        <div className="flex-1">
+        <div className="flex-1 flex items-center gap-4">
           {currentEntryIndex >= 0 && totalEntries > 0 && (
             <span className="text-sm text-gray-500 dark:text-gray-400">
               {currentEntryIndex + 1} of {totalEntries}
             </span>
           )}
+          
+          {/* Timer */}
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
+              <Clock size={14} className="text-purple-600" />
+              <span className={`text-sm font-mono ${timer.timeLeft <= 60 ? 'text-red-500' : 'text-gray-500 dark:text-gray-400'}`}>
+                {formatTime(timer.timeLeft)}
+              </span>
+            </div>
+            <div className="flex items-center gap-1">
+              {!timer.isRunning ? (
+                <button
+                  type="button"
+                  onClick={startTimer}
+                  className="p-1 text-green-500 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300"
+                  title="Start timer"
+                >
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                  </svg>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={pauseTimer}
+                  className="p-1 text-yellow-500 hover:text-yellow-700 dark:text-yellow-400 dark:hover:text-yellow-300"
+                  title="Pause timer"
+                >
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={resetTimer}
+                className="p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                title="Reset timer"
+              >
+                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+                </svg>
+              </button>
+            </div>
+            <select
+              value={timer.duration / 60}
+              onChange={(e) => setTimerDuration(parseInt(e.target.value))}
+              className="text-xs bg-transparent border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 text-gray-600 dark:text-gray-400 focus:outline-none focus:ring-1 focus:ring-purple-500"
+              title="Timer duration"
+            >
+              <option value={1}>1m</option>
+              <option value={3}>3m</option>
+              <option value={5}>5m</option>
+              <option value={10}>10m</option>
+              <option value={15}>15m</option>
+              <option value={30}>30m</option>
+            </select>
+          </div>
         </div>
         <button
           type="submit"
