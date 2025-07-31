@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { marked } from 'marked'
 import { generateInstructionTemplate } from '../../lib/dataService'
 import { supabase } from '../../lib/supabase'
 import { Plus, Clock, Brain, Heart, TrendingUp, Zap, ChevronDown, Paperclip, Link, X, Image as ImageIcon, FileText, Scale, Heart as HeartIcon, Lightbulb, Paperclip as PaperclipIcon, AlertTriangle, Copy, Bold, Italic, List, ListOrdered, Heading1, Heading2, Quote, Code, Link as LinkIcon, ChevronLeft, ChevronRight, Upload, Target, Eye, Sun, Shield, CheckSquare, Eye as EyeIcon, Edit3 } from 'lucide-react'
@@ -150,15 +149,9 @@ const MarkdownEditor = ({ value, onChange, placeholder, fieldId, onFocus }) => {
     <div className="relative h-full flex flex-col">
       {/* Toggle Button */}
       <div className="flex justify-end mb-2">
-        <div className="text-xs text-gray-500 mr-2">
-          Mode: {isPreviewMode ? 'Preview' : 'Edit'}
-        </div>
         <button
           type="button"
-          onClick={() => {
-            console.log('Toggle preview mode:', !isPreviewMode)
-            setIsPreviewMode(!isPreviewMode)
-          }}
+          onClick={() => setIsPreviewMode(!isPreviewMode)}
           className="flex items-center gap-1 px-2 py-1 text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-600 rounded transition-colors"
           title={isPreviewMode ? 'Switch to Edit Mode' : 'Switch to Preview Mode'}
         >
@@ -178,36 +171,51 @@ const MarkdownEditor = ({ value, onChange, placeholder, fieldId, onFocus }) => {
 
       {/* Content Area */}
       <div className="flex-1 relative">
-        {console.log('Rendering preview mode:', isPreviewMode)}
         {isPreviewMode ? (
           /* Markdown Preview */
           <div className="w-full h-full p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white overflow-auto">
             {value ? (
-              <div className="markdown-preview">
-                {/* Simple test first */}
-                <div className="mb-4 p-2 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200">
-                  <strong>Test:</strong> Preview mode is working! Content: "{value.substring(0, 50)}..."
-                </div>
-                
-                <div>
-                  <h3>Raw Content:</h3>
-                  <pre className="text-xs bg-gray-100 dark:bg-gray-800 p-2 rounded mb-4">{value}</pre>
-                  
-                  <h3>ReactMarkdown:</h3>
-                  <ReactMarkdown>
-                    {value}
-                  </ReactMarkdown>
-                  
-                  <h3>Marked (Fallback):</h3>
-                  <div 
-                    className="markdown-preview"
-                    dangerouslySetInnerHTML={{ __html: marked(value) }}
-                  />
-                </div>
-                {/* Debug info */}
-                <div className="mt-4 p-2 bg-gray-100 dark:bg-gray-800 text-xs">
-                  <strong>Debug:</strong> Preview mode active. Content length: {value.length}
-                </div>
+              <div className="prose prose-sm dark:prose-invert max-w-none">
+                <ReactMarkdown 
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    // Custom checkbox rendering
+                    input: ({ checked, ...props }) => (
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        readOnly
+                        className="mr-2"
+                        {...props}
+                      />
+                    ),
+                    // Custom link rendering
+                    a: ({ href, children }) => (
+                      <a 
+                        href={href} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-purple-600 dark:text-purple-400 hover:underline"
+                      >
+                        {children}
+                      </a>
+                    ),
+                    // Custom code rendering
+                    code: ({ children, className }) => (
+                      <code className={`${className} bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-sm`}>
+                        {children}
+                      </code>
+                    ),
+                    // Custom blockquote rendering
+                    blockquote: ({ children }) => (
+                      <blockquote className="border-l-4 border-purple-500 pl-4 italic text-gray-700 dark:text-gray-300">
+                        {children}
+                      </blockquote>
+                    )
+                  }}
+                >
+                  {value}
+                </ReactMarkdown>
               </div>
             ) : (
               <div className="text-gray-500 dark:text-gray-400 italic">
