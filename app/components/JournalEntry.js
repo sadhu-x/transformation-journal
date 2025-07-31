@@ -2,9 +2,11 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import { generateInstructionTemplate } from '../../lib/dataService'
 import { supabase } from '../../lib/supabase'
-import { Plus, Clock, Brain, Heart, TrendingUp, Zap, ChevronDown, Paperclip, Link, X, Image as ImageIcon, FileText, Scale, Heart as HeartIcon, Lightbulb, Paperclip as PaperclipIcon, AlertTriangle, Copy, Bold, Italic, List, ListOrdered, Heading1, Heading2, Quote, Code, Link as LinkIcon, ChevronLeft, ChevronRight, Upload, Target, Eye, Sun, Shield } from 'lucide-react'
+import { Plus, Clock, Brain, Heart, TrendingUp, Zap, ChevronDown, Paperclip, Link, X, Image as ImageIcon, FileText, Scale, Heart as HeartIcon, Lightbulb, Paperclip as PaperclipIcon, AlertTriangle, Copy, Bold, Italic, List, ListOrdered, Heading1, Heading2, Quote, Code, Link as LinkIcon, ChevronLeft, ChevronRight, Upload, Target, Eye, Sun, Shield, CheckSquare, Eye as EyeIcon, Edit3 } from 'lucide-react'
 
 const energyLevels = ['Depleted', 'Low', 'Moderate', 'Good', 'High', 'Peak', 'Transcendent']
 const clarityLevels = ['Foggy', 'Unclear', 'Somewhat Clear', 'Clear', 'Very Clear', 'Crystal Clear', 'Illuminated']
@@ -44,6 +46,7 @@ const emotionOptions = [
 // Markdown Editor Component
 const MarkdownEditor = ({ value, onChange, placeholder, fieldId, onFocus }) => {
   const textareaRef = useRef(null)
+  const [isPreviewMode, setIsPreviewMode] = useState(false)
 
   const handleKeyDown = (e) => {
     if (e.key === 'Tab') {
@@ -143,18 +146,96 @@ const MarkdownEditor = ({ value, onChange, placeholder, fieldId, onFocus }) => {
   }
 
   return (
-    <div className="relative h-full">
-      {/* Textarea */}
-      <textarea
-        ref={textareaRef}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onKeyDown={handleKeyDown}
-        onFocus={() => onFocus && onFocus(fieldId)}
-        placeholder={placeholder}
-        className="w-full h-full p-3 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 resize-none"
-        data-field-id={fieldId}
-      />
+    <div className="relative h-full flex flex-col">
+      {/* Toggle Button */}
+      <div className="flex justify-end mb-2">
+        <button
+          type="button"
+          onClick={() => setIsPreviewMode(!isPreviewMode)}
+          className="flex items-center gap-1 px-2 py-1 text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-600 rounded transition-colors"
+          title={isPreviewMode ? 'Switch to Edit Mode' : 'Switch to Preview Mode'}
+        >
+          {isPreviewMode ? (
+            <>
+              <Edit3 size={12} />
+              Edit
+            </>
+          ) : (
+            <>
+              <EyeIcon size={12} />
+              Preview
+            </>
+          )}
+        </button>
+      </div>
+
+      {/* Content Area */}
+      <div className="flex-1 relative">
+        {isPreviewMode ? (
+          /* Markdown Preview */
+          <div className="w-full h-full p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white overflow-auto">
+            {value ? (
+              <ReactMarkdown 
+                remarkPlugins={[remarkGfm]}
+                className="prose prose-sm dark:prose-invert max-w-none"
+                components={{
+                  // Custom checkbox rendering
+                  input: ({ checked, ...props }) => (
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      readOnly
+                      className="mr-2"
+                      {...props}
+                    />
+                  ),
+                  // Custom link rendering
+                  a: ({ href, children }) => (
+                    <a 
+                      href={href} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-purple-600 dark:text-purple-400 hover:underline"
+                    >
+                      {children}
+                    </a>
+                  ),
+                  // Custom code rendering
+                  code: ({ children, className }) => (
+                    <code className={`${className} bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-sm`}>
+                      {children}
+                    </code>
+                  ),
+                  // Custom blockquote rendering
+                  blockquote: ({ children }) => (
+                    <blockquote className="border-l-4 border-purple-500 pl-4 italic text-gray-700 dark:text-gray-300">
+                      {children}
+                    </blockquote>
+                  )
+                }}
+              >
+                {value}
+              </ReactMarkdown>
+            ) : (
+              <div className="text-gray-500 dark:text-gray-400 italic">
+                {placeholder}
+              </div>
+            )}
+          </div>
+        ) : (
+          /* Textarea Editor */
+          <textarea
+            ref={textareaRef}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            onKeyDown={handleKeyDown}
+            onFocus={() => onFocus && onFocus(fieldId)}
+            placeholder={placeholder}
+            className="w-full h-full p-3 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 resize-none"
+            data-field-id={fieldId}
+          />
+        )}
+      </div>
     </div>
   )
 }
@@ -655,6 +736,7 @@ ${entryJson}
     { icon: Heading2, label: 'Heading 2', action: () => insertMarkdownToFocusedField('## ') },
     { icon: List, label: 'Bullet List', action: () => insertMarkdownToFocusedField('- ') },
     { icon: ListOrdered, label: 'Numbered List', action: () => insertMarkdownToFocusedField('1. ') },
+    { icon: CheckSquare, label: 'Checkbox', action: () => insertMarkdownToFocusedField('- [ ] ') },
     { icon: Quote, label: 'Quote', action: () => insertMarkdownToFocusedField('> ') },
     { icon: Code, label: 'Code', action: () => insertMarkdownToFocusedField('`', '`') },
     { icon: LinkIcon, label: 'Link', action: () => insertMarkdownToFocusedField('[', '](url)') },
