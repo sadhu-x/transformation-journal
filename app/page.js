@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { getEntries, addEntry as addEntryToDB, updateEntry as updateEntryToDB, deleteEntry as deleteEntryFromDB, getLocalEntries, saveLocalEntries } from '../lib/dataService'
+import { getEntries, addEntry as addEntryToDB, updateEntry as updateEntryToDB, deleteEntry as deleteEntryFromDB, getLocalEntries, saveLocalEntries, getNonNegotiables, addNonNegotiable, updateNonNegotiable, deleteNonNegotiable, saveLocalNonNegotiables } from '../lib/dataService'
 import JournalEntry from './components/JournalEntry'
 import EntryList from './components/EntryList'
+import NonNegotiables from './components/NonNegotiables'
+import TabContainer from './components/TabContainer'
 import ExportDropdown from './components/ExportData'
 import ThemeToggle from './components/ThemeToggle'
 import UserProfile from './components/UserProfile'
@@ -15,6 +17,8 @@ import { supabase } from '../lib/supabase'
 
 export default function Home() {
   const [entries, setEntries] = useState([])
+  const [nonNegotiables, setNonNegotiables] = useState([])
+  const [activeTab, setActiveTab] = useState('journal')
   const [selectedImage, setSelectedImage] = useState(null)
   const [imageComments, setImageComments] = useState({})
   const [showJournalModal, setShowJournalModal] = useState(false)
@@ -54,22 +58,28 @@ export default function Home() {
   useEffect(() => {
     if (!user) {
       setEntries([])
+      setNonNegotiables([])
       return
     }
 
-    const loadEntries = async () => {
+    const loadData = async () => {
       try {
-        const dbEntries = await getEntries()
+        const [dbEntries, dbNonNegotiables] = await Promise.all([
+          getEntries(),
+          getNonNegotiables()
+        ])
         setEntries(dbEntries)
+        setNonNegotiables(dbNonNegotiables)
       } catch (error) {
         console.warn('Failed to load from database, using local storage:', error)
         // Fallback to localStorage
         const localEntries = getLocalEntries()
         setEntries(localEntries)
+        // Non-negotiables will be loaded from localStorage by the component
       }
     }
     
-    loadEntries()
+    loadData()
   }, [user])
 
   // Save entries to localStorage as backup whenever entries change
@@ -81,6 +91,15 @@ export default function Home() {
       // Could add a toast notification here if needed
     }
   }, [entries])
+
+  // Save non-negotiables to localStorage as backup whenever they change
+  useEffect(() => {
+    try {
+      saveLocalNonNegotiables(nonNegotiables)
+    } catch (error) {
+      console.error('Failed to save non-negotiables to localStorage:', error)
+    }
+  }, [nonNegotiables])
 
   const addEntry = async (entry) => {
     try {
@@ -266,6 +285,8 @@ export default function Home() {
     }
   }
 
+
+
   // Show loading state
   if (loading) {
     return (
@@ -300,22 +321,33 @@ export default function Home() {
       </div>
 
       {/* Floating Add Button */}
-      <button
-        onClick={openJournalModal}
-        className="fixed bottom-6 right-6 z-40 bg-gradient-to-r from-purple-600 to-blue-600 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
-      >
-        <Plus className="h-6 w-6" />
-      </button>
+      {activeTab === 'journal' && (
+        <button
+          onClick={openJournalModal}
+          className="fixed bottom-6 right-6 z-40 bg-gradient-to-r from-purple-600 to-blue-600 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+        >
+          <Plus className="h-6 w-6" />
+        </button>
+      )}
 
       {/* Main Content */}
       <div className="max-w-4xl mx-auto p-4 space-y-6 pt-32">
-        {/* Journal Entries List */}
-        <EntryList 
-          entries={entries} 
-          onDeleteEntry={deleteEntry}
-          onEditEntry={openJournalModal}
-          title="Journal Entries"
-        />
+        <TabContainer activeTab={activeTab} onTabChange={setActiveTab}>
+          {activeTab === 'journal' && (
+            <EntryList 
+              entries={entries} 
+              onDeleteEntry={deleteEntry}
+              onEditEntry={openJournalModal}
+              title="Journal Entries"
+            />
+          )}
+          {activeTab === 'non-negotiables' && (
+            <NonNegotiables 
+              items={nonNegotiables}
+              onUpdateItems={setNonNegotiables}
+            />
+          )}
+        </TabContainer>
 
       {/* Journal Entry Modal - Rendered via portal */}
               {showJournalModal && createPortal(

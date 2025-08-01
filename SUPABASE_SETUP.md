@@ -42,6 +42,7 @@ Run this SQL in your Supabase SQL Editor:
 -- Create journal_entries table
 CREATE TABLE IF NOT EXISTS journal_entries (
   id BIGSERIAL PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
   timestamp TIMESTAMPTZ DEFAULT NOW(),
   activity TEXT,
   gratitude TEXT,
@@ -54,12 +55,57 @@ CREATE TABLE IF NOT EXISTS journal_entries (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Create indexes for journal_entries
+CREATE INDEX IF NOT EXISTS idx_journal_entries_user_id ON journal_entries(user_id);
+CREATE INDEX IF NOT EXISTS idx_journal_entries_timestamp ON journal_entries(timestamp);
+
 -- Enable Row Level Security (RLS)
 ALTER TABLE journal_entries ENABLE ROW LEVEL SECURITY;
 
--- Create policy to allow all operations (for now)
-CREATE POLICY "Allow all operations" ON journal_entries
-  FOR ALL USING (true);
+-- Create RLS policies for journal_entries
+CREATE POLICY "Users can view their own entries" ON journal_entries
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert their own entries" ON journal_entries
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own entries" ON journal_entries
+  FOR UPDATE USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their own entries" ON journal_entries
+  FOR DELETE USING (auth.uid() = user_id);
+
+-- Create non_negotiables table
+CREATE TABLE IF NOT EXISTS non_negotiables (
+  id BIGSERIAL PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  text TEXT NOT NULL,
+  completed BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  completed_at TIMESTAMPTZ,
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Create indexes for non_negotiables
+CREATE INDEX IF NOT EXISTS idx_non_negotiables_user_id ON non_negotiables(user_id);
+CREATE INDEX IF NOT EXISTS idx_non_negotiables_created_at ON non_negotiables(created_at);
+CREATE INDEX IF NOT EXISTS idx_non_negotiables_completed ON non_negotiables(completed);
+
+-- Enable Row Level Security for non_negotiables
+ALTER TABLE non_negotiables ENABLE ROW LEVEL SECURITY;
+
+-- Create RLS policies for non_negotiables
+CREATE POLICY "Users can view their own non-negotiables" ON non_negotiables
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert their own non-negotiables" ON non_negotiables
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own non-negotiables" ON non_negotiables
+  FOR UPDATE USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their own non-negotiables" ON non_negotiables
+  FOR DELETE USING (auth.uid() = user_id);
 
 -- Create storage bucket for images
 INSERT INTO storage.buckets (id, name, public)
