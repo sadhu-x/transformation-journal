@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS non_negotiables (
   completed BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   completed_at TIMESTAMPTZ,
+  date DATE DEFAULT CURRENT_DATE,
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -13,6 +14,7 @@ CREATE TABLE IF NOT EXISTS non_negotiables (
 CREATE INDEX IF NOT EXISTS idx_non_negotiables_user_id ON non_negotiables(user_id);
 CREATE INDEX IF NOT EXISTS idx_non_negotiables_created_at ON non_negotiables(created_at);
 CREATE INDEX IF NOT EXISTS idx_non_negotiables_completed ON non_negotiables(completed);
+CREATE INDEX IF NOT EXISTS idx_non_negotiables_date ON non_negotiables(date);
 
 -- Enable Row Level Security
 ALTER TABLE non_negotiables ENABLE ROW LEVEL SECURITY;

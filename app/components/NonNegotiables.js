@@ -9,6 +9,23 @@ export default function NonNegotiables({ items = [], onUpdateItems }) {
   const [editText, setEditText] = useState('')
   const [newItemText, setNewItemText] = useState('')
   const [showAddForm, setShowAddForm] = useState(false)
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
+
+  // Get today's date in YYYY-MM-DD format
+  const getTodayDate = () => new Date().toISOString().split('T')[0]
+  
+  // Filter items for the selected date
+  const getItemsForDate = (date) => {
+    return items.filter(item => {
+      const itemDate = new Date(item.created_at || item.createdAt).toISOString().split('T')[0]
+      return itemDate === date
+    })
+  }
+
+  // Get current day's items
+  const todayItems = getItemsForDate(selectedDate)
+  const todayCompleted = todayItems.filter(item => item.completed).length
+  const todayTotal = todayItems.length
 
 
 
@@ -18,7 +35,8 @@ export default function NonNegotiables({ items = [], onUpdateItems }) {
         text: newItemText.trim(),
         completed: false,
         created_at: new Date().toISOString(),
-        completed_at: null
+        completed_at: null,
+        date: selectedDate // Add the selected date
       }
       
       try {
@@ -113,6 +131,43 @@ export default function NonNegotiables({ items = [], onUpdateItems }) {
     }
   }
 
+  const copyFromYesterday = async () => {
+    const yesterday = new Date()
+    yesterday.setDate(yesterday.getDate() - 1)
+    const yesterdayDate = yesterday.toISOString().split('T')[0]
+    
+    const yesterdayItems = getItemsForDate(yesterdayDate)
+    
+    if (yesterdayItems.length === 0) {
+      alert('No non-negotiables found for yesterday')
+      return
+    }
+
+    try {
+      // Copy each item from yesterday to today
+      const copyPromises = yesterdayItems.map(async (item) => {
+        const newItem = {
+          text: item.text,
+          completed: false, // Reset completion status
+          created_at: new Date().toISOString(),
+          completed_at: null,
+          date: getTodayDate()
+        }
+        
+        const savedItem = await addNonNegotiable(newItem)
+        return savedItem
+      })
+
+      const copiedItems = await Promise.all(copyPromises)
+      onUpdateItems(prev => [...copiedItems, ...prev])
+      
+      alert(`Copied ${copiedItems.length} non-negotiables from yesterday`)
+    } catch (error) {
+      console.error('Failed to copy from yesterday:', error)
+      alert('Failed to copy non-negotiables from yesterday')
+    }
+  }
+
   const formatDate = (timestamp) => {
     return new Date(timestamp).toLocaleDateString('en-US', {
       month: 'short',
@@ -129,8 +184,35 @@ export default function NonNegotiables({ items = [], onUpdateItems }) {
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-semibold dark:text-white">Non-Negotiables</h2>
         <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-          <span>{items.filter(item => item.completed).length} of {items.length} completed</span>
+          <span>{todayCompleted} of {todayTotal} completed today</span>
         </div>
+      </div>
+
+      {/* Date Selector */}
+      <div className="flex items-center gap-4">
+        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Date:</label>
+        <input
+          type="date"
+          value={selectedDate}
+          onChange={(e) => setSelectedDate(e.target.value)}
+          className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+        />
+        {selectedDate !== getTodayDate() && (
+          <button
+            onClick={() => setSelectedDate(getTodayDate())}
+            className="px-3 py-1 text-sm bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
+          >
+            Today
+          </button>
+        )}
+        {selectedDate === getTodayDate() && (
+          <button
+            onClick={copyFromYesterday}
+            className="px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          >
+            Copy from Yesterday
+          </button>
+        )}
       </div>
 
       {/* Add New Item */}
@@ -176,12 +258,12 @@ export default function NonNegotiables({ items = [], onUpdateItems }) {
 
       {/* Items List */}
       <div className="space-y-2">
-        {items.length === 0 ? (
+        {todayItems.length === 0 ? (
           <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-            <p>No non-negotiables yet. Add your first one above!</p>
+            <p>No non-negotiables for {selectedDate === getTodayDate() ? 'today' : selectedDate}. Add your first one above!</p>
           </div>
         ) : (
-          items.map((item) => (
+          todayItems.map((item) => (
             <div
               key={item.id}
               className={`p-4 border rounded-lg transition-all duration-200 ${
