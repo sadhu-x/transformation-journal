@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Plus, Trash2, Edit3, Check, X, Save } from 'lucide-react'
 import { addNonNegotiable, updateNonNegotiable, deleteNonNegotiable } from '../../lib/dataService'
+import DatePicker from './DatePicker'
 
 export default function NonNegotiables({ items = [], onUpdateItems }) {
   const [editingId, setEditingId] = useState(null)
@@ -203,11 +204,10 @@ export default function NonNegotiables({ items = [], onUpdateItems }) {
         
         <div className="flex items-center gap-3">
           <div className="flex-1">
-            <input
-              type="date"
+            <DatePicker
               value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+              onChange={setSelectedDate}
+              className="w-full"
             />
           </div>
           
