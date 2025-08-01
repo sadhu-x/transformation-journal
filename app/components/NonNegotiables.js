@@ -183,36 +183,135 @@ export default function NonNegotiables({ items = [], onUpdateItems }) {
       {/* Header */}
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-semibold dark:text-white">Non-Negotiables</h2>
-        <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-          <span>{todayCompleted} of {todayTotal} completed today</span>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-gray-500 dark:text-gray-400">
+            Daily commitments & habits
+          </span>
         </div>
       </div>
 
       {/* Date Selector */}
-      <div className="flex items-center gap-4">
-        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Date:</label>
-        <input
-          type="date"
-          value={selectedDate}
-          onChange={(e) => setSelectedDate(e.target.value)}
-          className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-        />
-        {selectedDate !== getTodayDate() && (
-          <button
-            onClick={() => setSelectedDate(getTodayDate())}
-            className="px-3 py-1 text-sm bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
-          >
-            Today
-          </button>
-        )}
-        {selectedDate === getTodayDate() && (
-          <button
-            onClick={copyFromYesterday}
-            className="px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-          >
-            Copy from Yesterday
-          </button>
-        )}
+      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Select Date</h3>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-500 dark:text-gray-400">
+              {todayCompleted} of {todayTotal} completed
+            </span>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-3">
+          <div className="flex-1">
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+            />
+          </div>
+          
+          <div className="flex gap-2">
+            {selectedDate !== getTodayDate() && (
+              <button
+                onClick={() => setSelectedDate(getTodayDate())}
+                className="px-4 py-2 text-sm bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-md hover:from-purple-700 hover:to-purple-800 transition-all duration-200 shadow-sm hover:shadow-md"
+              >
+                Today
+              </button>
+            )}
+            {selectedDate === getTodayDate() && (
+              <button
+                onClick={copyFromYesterday}
+                className="px-4 py-2 text-sm bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-md hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-sm hover:shadow-md"
+              >
+                Copy from Yesterday
+              </button>
+            )}
+          </div>
+        </div>
+        
+        {/* Date Display */}
+        <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-gray-600 dark:text-gray-400">
+              {selectedDate === getTodayDate() ? (
+                <span className="flex items-center gap-2">
+                  <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                  Today
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <span className="w-2 h-2 bg-gray-400 rounded-full"></span>
+                  {new Date(selectedDate).toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                </span>
+              )}
+            </span>
+            {selectedDate !== getTodayDate() && (
+              <button
+                onClick={() => setSelectedDate(getTodayDate())}
+                className="text-xs text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors"
+              >
+                Back to Today
+              </button>
+            )}
+          </div>
+          
+          {/* Quick Navigation */}
+          <div className="mt-2 flex gap-1">
+            <button
+              onClick={() => {
+                const yesterday = new Date()
+                yesterday.setDate(yesterday.getDate() - 1)
+                setSelectedDate(yesterday.toISOString().split('T')[0])
+              }}
+              className={`px-2 py-1 text-xs rounded transition-colors ${
+                selectedDate === (() => {
+                  const yesterday = new Date()
+                  yesterday.setDate(yesterday.getDate() - 1)
+                  return yesterday.toISOString().split('T')[0]
+                })()
+                  ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+              }`}
+            >
+              Yesterday
+            </button>
+            <button
+              onClick={() => setSelectedDate(getTodayDate())}
+              className={`px-2 py-1 text-xs rounded transition-colors ${
+                selectedDate === getTodayDate()
+                  ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+              }`}
+            >
+              Today
+            </button>
+            <button
+              onClick={() => {
+                const tomorrow = new Date()
+                tomorrow.setDate(tomorrow.getDate() + 1)
+                setSelectedDate(tomorrow.toISOString().split('T')[0])
+              }}
+              className={`px-2 py-1 text-xs rounded transition-colors ${
+                selectedDate === (() => {
+                  const tomorrow = new Date()
+                  tomorrow.setDate(tomorrow.getDate() + 1)
+                  return tomorrow.toISOString().split('T')[0]
+                })()
+                  ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+              }`}
+            >
+              Tomorrow
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Add New Item */}
