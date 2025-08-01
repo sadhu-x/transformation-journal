@@ -43,6 +43,10 @@ export default function EntryList({ entries, onDeleteEntry, onEditEntry, title, 
       const userConfig = JSON.parse(localStorage.getItem('user-config') || '{}')
       const instructions = generateInstructionTemplate(userConfig)
       
+      // Get current non-negotiables for context
+      const nonNegotiables = JSON.parse(localStorage.getItem('transformation-non-negotiables') || '[]')
+      const nonNegotiablesJson = JSON.stringify(nonNegotiables, null, 2)
+      
       const contextTemplate = `${instructions}
 
 ## Data Period
@@ -51,9 +55,16 @@ export default function EntryList({ entries, onDeleteEntry, onEditEntry, title, 
 
 ---
 
-## JSON DATA:
+## JOURNAL ENTRY DATA:
 \`\`\`json
 ${entryJson}
+\`\`\`
+
+---
+
+## CURRENT NON-NEGOTIABLES:
+\`\`\`json
+${nonNegotiablesJson}
 \`\`\`
 
 ---`
