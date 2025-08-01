@@ -730,6 +730,29 @@ ${entryJson}
     }
   }, [entry, onUpdateEntryData])
 
+  // Periodic auto-save every 30 seconds if there's content
+  useEffect(() => {
+    const hasContent = entry.activity?.trim() || 
+                      entry.gratitude?.trim() || 
+                      entry.presence?.trim() || 
+                      entry.insights?.trim() || 
+                      entry.wishFulfilled?.trim() || 
+                      entry.aiResponse?.trim() ||
+                      (entry.attachments && entry.attachments.length > 0)
+
+    if (hasContent) {
+      const autoSaveInterval = setInterval(() => {
+        // Only auto-save if we have content and it's not an existing entry being edited
+        if (hasContent && !editingEntry?.id) {
+          onAddEntry(entry)
+          console.log('Auto-saved entry (periodic)')
+        }
+      }, 30000) // 30 seconds
+
+      return () => clearInterval(autoSaveInterval)
+    }
+  }, [entry, editingEntry, onAddEntry])
+
   const formatButtons = [
     { icon: Bold, label: 'Bold', action: () => insertMarkdownToFocusedField('**', '**') },
     { icon: Italic, label: 'Italic', action: () => insertMarkdownToFocusedField('*', '*') },
