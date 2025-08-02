@@ -14,19 +14,29 @@ export default function CosmicContext({ date = new Date() }) {
     const loadData = async () => {
       setLoading(true)
       
-      // Get Vedic data (local calculation)
-      const vedic = getVedicData(date)
-      setVedicData(vedic)
-      
-      // Get weather data (API call)
       try {
-        const weather = await getCurrentLocationWeather()
+        // Get Vedic data (local calculation)
+        const vedic = getVedicData(date)
+        setVedicData(vedic)
+        
+        // Get weather data (API call) with timeout
+        const weatherPromise = getCurrentLocationWeather()
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Weather timeout')), 10000)
+        )
+        
+        const weather = await Promise.race([weatherPromise, timeoutPromise])
         setWeatherData(weather)
       } catch (error) {
-        console.error('Failed to load weather data:', error)
+        console.log('Error loading cosmic context data:', error.message)
+        // Still set Vedic data even if weather fails
+        if (!vedicData) {
+          const vedic = getVedicData(date)
+          setVedicData(vedic)
+        }
+      } finally {
+        setLoading(false)
       }
-      
-      setLoading(false)
     }
     
     loadData()
