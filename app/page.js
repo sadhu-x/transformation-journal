@@ -7,6 +7,7 @@ import JournalEntry from './components/JournalEntry'
 import EntryList from './components/EntryList'
 import NonNegotiables from './components/NonNegotiables'
 import TabContainer from './components/TabContainer'
+import CosmicContext from './components/CosmicContext'
 import ExportDropdown from './components/ExportData'
 import ThemeToggle from './components/ThemeToggle'
 import UserProfile from './components/UserProfile'
@@ -383,6 +384,9 @@ export default function Home() {
               items={nonNegotiables}
               onUpdateItems={setNonNegotiables}
             />
+          )}
+          {activeTab === 'cosmic' && (
+            <CosmicContext />
           )}
         </TabContainer>
 
