@@ -197,13 +197,13 @@ export default function CosmicContextCompact() {
         
         {/* Sun Tooltip */}
         {showSunTooltip && (
-          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg shadow-lg z-50 whitespace-nowrap">
+          <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg shadow-lg z-50 whitespace-nowrap">
             <div className="font-semibold mb-1">Sun in {sunRashi}</div>
             <div>Element: {sunInfo.element}</div>
             <div>Quality: {sunInfo.quality}</div>
             <div>Ruler: {sunInfo.ruler}</div>
             <div>Nature: {sunInfo.nature}</div>
-            <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-transparent border-b-gray-800"></div>
           </div>
         )}
       </div>
@@ -220,14 +220,14 @@ export default function CosmicContextCompact() {
         
         {/* Moon Tooltip */}
         {showMoonTooltip && (
-          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg shadow-lg z-50 whitespace-nowrap">
+          <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg shadow-lg z-50 whitespace-nowrap">
             <div className="font-semibold mb-1">Moon in {moonRashi}</div>
             <div>Phase: {formattedVedic.phase}</div>
             <div>Element: {moonInfo.element}</div>
             <div>Quality: {moonInfo.quality}</div>
             <div>Ruler: {moonInfo.ruler}</div>
             <div>Nature: {moonInfo.nature}</div>
-            <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-transparent border-b-gray-800"></div>
           </div>
         )}
       </div>
