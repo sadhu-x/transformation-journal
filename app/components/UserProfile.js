@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { User, Settings, X, Save, MapPin } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { getUserProfile, updateUserProfile } from '../../lib/dataService'
 
 export default function UserProfile({ user, onSignOut }) {
   const [showSettings, setShowSettings] = useState(false)
@@ -52,14 +53,23 @@ export default function UserProfile({ user, onSignOut }) {
         }
       }
 
-      // Then try to load from Supabase user metadata (this will override localStorage if available)
+      // Then try to load from Supabase user_profiles table (this will override localStorage if available)
       if (user) {
         try {
-          const { data: { user: currentUser } } = await supabase.auth.getUser()
-          if (currentUser?.user_metadata?.userConfig) {
-            const supabaseConfig = currentUser.user_metadata.userConfig
+          const profileData = await getUserProfile()
+          if (profileData) {
+            const supabaseConfig = {
+              primaryGoals: profileData.primary_goals || '',
+              keyPractices: profileData.key_practices || '',
+              currentFocus: profileData.current_focus || '',
+              birthDate: profileData.birth_date || '',
+              birthTime: profileData.birth_time || '',
+              birthLocation: profileData.birth_location || '',
+              birthLatitude: profileData.birth_latitude || '',
+              birthLongitude: profileData.birth_longitude || ''
+            }
             config = { ...config, ...supabaseConfig }
-            console.log('Loaded config from Supabase:', supabaseConfig)
+            console.log('Loaded config from Supabase user_profiles:', supabaseConfig)
           }
         } catch (error) {
           console.error('Error loading user config from Supabase:', error)
@@ -102,12 +112,25 @@ export default function UserProfile({ user, onSignOut }) {
         }
       }
       
-      // Also save to Supabase user metadata if available
+      // Also save to Supabase user_profiles table if available
       if (user) {
-        const { error } = await supabase.auth.updateUser({
-          data: { userConfig }
-        })
-        if (error) console.warn('Could not save to Supabase:', error)
+        try {
+          const profileData = {
+            primary_goals: userConfig.primaryGoals,
+            key_practices: userConfig.keyPractices,
+            current_focus: userConfig.currentFocus,
+            birth_date: userConfig.birthDate || null,
+            birth_time: userConfig.birthTime || null,
+            birth_location: userConfig.birthLocation,
+            birth_latitude: userConfig.birthLatitude ? parseFloat(userConfig.birthLatitude) : null,
+            birth_longitude: userConfig.birthLongitude ? parseFloat(userConfig.birthLongitude) : null
+          }
+          
+          await updateUserProfile(profileData)
+          console.log('Successfully saved to Supabase user_profiles')
+        } catch (error) {
+          console.warn('Could not save to Supabase user_profiles:', error)
+        }
       }
       
       setShowSettings(false)
