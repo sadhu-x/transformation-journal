@@ -7,7 +7,7 @@ import JournalEntry from './components/JournalEntry'
 import EntryList from './components/EntryList'
 import NonNegotiables from './components/NonNegotiables'
 import TabContainer from './components/TabContainer'
-import CosmicContext from './components/CosmicContext'
+import CosmicContextCompact from './components/CosmicContextCompact'
 import ExportDropdown from './components/ExportData'
 import ThemeToggle from './components/ThemeToggle'
 import UserProfile from './components/UserProfile'
@@ -342,7 +342,8 @@ export default function Home() {
               <TekneIcon size={24} />
               <h1 className="text-2xl font-thin tracking-wide">TEKNE</h1>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-4">
+              <CosmicContextCompact />
               <ExportDropdown entries={entries} />
               <UserProfile user={user} onSignOut={handleSignOut} />
               <ThemeToggle />
@@ -384,9 +385,6 @@ export default function Home() {
               items={nonNegotiables}
               onUpdateItems={setNonNegotiables}
             />
-          )}
-          {activeTab === 'cosmic' && (
-            <CosmicContext />
           )}
         </TabContainer>
 
