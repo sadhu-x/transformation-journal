@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { generateInstructionTemplate } from '../../lib/dataService'
+import { getVedicData, formatVedicData } from '../../lib/astronomy'
 import { Trash2, ChevronDown, ChevronUp, Image as ImageIcon, Link, ExternalLink, Copy } from 'lucide-react'
 
 const energyLevels = ['Depleted', 'Low', 'Moderate', 'Good', 'High', 'Peak', 'Transcendent']
@@ -37,7 +38,25 @@ export default function EntryList({ entries, onDeleteEntry, onEditEntry, title, 
 
   const copyEntryAsJson = async (entry) => {
     try {
-      const entryJson = JSON.stringify(entry, null, 2)
+      // Add cosmic context for the entry date
+      const entryDate = new Date(entry.timestamp)
+      const vedicData = getVedicData(entryDate)
+      const formattedVedic = formatVedicData(vedicData)
+      
+      const entryWithCosmicContext = {
+        ...entry,
+        cosmicContext: {
+          sun: formattedVedic.sun,
+          moon: formattedVedic.moon,
+          nakshatra: formattedVedic.nakshatra,
+          tithi: formattedVedic.tithi,
+          lunarPhase: formattedVedic.phase,
+          yoga: vedicData.yoga.name,
+          date: vedicData.date
+        }
+      }
+      
+      const entryJson = JSON.stringify(entryWithCosmicContext, null, 2)
       
       // Get user configuration for personalized instructions
       const userConfig = JSON.parse(localStorage.getItem('user-config') || '{}')
@@ -55,7 +74,7 @@ export default function EntryList({ entries, onDeleteEntry, onEditEntry, title, 
 
 ---
 
-## JOURNAL ENTRY DATA:
+## JOURNAL ENTRY DATA (with Cosmic Context):
 \`\`\`json
 ${entryJson}
 \`\`\`
