@@ -136,6 +136,23 @@ ${nonNegotiablesJson}
       .replace(/\n/g, '<br>')
   }
 
+  // Strip markdown formatting for plain text display
+  const stripMarkdown = (text) => {
+    if (!text) return ''
+    
+    return text
+      .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold
+      .replace(/\*(.*?)\*/g, '$1') // Remove italic
+      .replace(/^#+\s*(.*$)/gm, '$1') // Remove headers
+      .replace(/^[-*+]\s*(.*$)/gm, '$1') // Remove bullet points
+      .replace(/^\d+\.\s*(.*$)/gm, '$1') // Remove numbered lists
+      .replace(/^>\s*(.*$)/gm, '$1') // Remove blockquotes
+      .replace(/`(.*?)`/g, '$1') // Remove inline code
+      .replace(/\[(.*?)\]\(.*?\)/g, '$1') // Remove links, keep text
+      .replace(/\n+/g, ' ') // Replace multiple newlines with single space
+      .trim()
+  }
+
   if (entries.length === 0) return null
 
   return (
@@ -191,26 +208,25 @@ ${nonNegotiablesJson}
                       </div>
                       <div className="font-medium">
                         {entry.activity ? 
-                          (entry.activity.length > 100 ? 
-                            <div 
-                              dangerouslySetInnerHTML={{ 
-                                __html: renderMarkdown(entry.activity.substring(0, 100) + '...') 
-                              }}
-                            /> : 
-                            <div 
-                              dangerouslySetInnerHTML={{ 
-                                __html: renderMarkdown(entry.activity) 
-                              }}
-                            />
-                          ) : 
+                          (() => {
+                            const plainText = stripMarkdown(entry.activity)
+                            return plainText.length > 100 ? 
+                              `${plainText.substring(0, 100)}...` : 
+                              plainText
+                          })()
+                        : 
                           'No activities recorded'
                         }
                       </div>
                       {entry.aiResponse && (
                         <div className="text-sm text-gray-600 dark:text-gray-300 italic">
                           AI: {entry.aiResponse.length > 80 ? 
-                            `${entry.aiResponse.substring(0, 80)}...` : 
-                            entry.aiResponse
+                            <span dangerouslySetInnerHTML={{ 
+                              __html: renderMarkdown(entry.aiResponse.substring(0, 80) + '...') 
+                            }} /> : 
+                            <span dangerouslySetInnerHTML={{ 
+                              __html: renderMarkdown(entry.aiResponse) 
+                            }} />
                           }
                         </div>
                       )}
