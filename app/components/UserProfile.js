@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { User, Settings, X, Save } from 'lucide-react'
+import { User, Settings, X, Save, MapPin } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 
 export default function UserProfile({ user, onSignOut }) {
@@ -10,7 +10,12 @@ export default function UserProfile({ user, onSignOut }) {
   const [userConfig, setUserConfig] = useState({
     primaryGoals: '',
     keyPractices: '',
-    currentFocus: ''
+    currentFocus: '',
+    birthDate: '',
+    birthTime: '',
+    birthLocation: '',
+    birthLatitude: '',
+    birthLongitude: ''
   })
 
   // Load user configuration from localStorage and Supabase on component mount
@@ -19,7 +24,12 @@ export default function UserProfile({ user, onSignOut }) {
       let config = {
         primaryGoals: '',
         keyPractices: '',
-        currentFocus: ''
+        currentFocus: '',
+        birthDate: '',
+        birthTime: '',
+        birthLocation: '',
+        birthLatitude: '',
+        birthLongitude: ''
       }
 
       // First try to load from localStorage
@@ -115,6 +125,34 @@ export default function UserProfile({ user, onSignOut }) {
     }))
   }
 
+  const handleGeocodeLocation = async () => {
+    if (!userConfig.birthLocation) {
+      alert('Please enter a birth location first')
+      return
+    }
+
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(userConfig.birthLocation)}&limit=1`
+      )
+      const data = await response.json()
+      
+      if (data && data.length > 0) {
+        const location = data[0]
+        setUserConfig(prev => ({
+          ...prev,
+          birthLatitude: location.lat,
+          birthLongitude: location.lon
+        }))
+      } else {
+        alert('Location not found. Please try a more specific location.')
+      }
+    } catch (error) {
+      console.error('Error geocoding location:', error)
+      alert('Error finding coordinates. Please enter them manually.')
+    }
+  }
+
   return (
     <>
       <div className="relative">
@@ -186,6 +224,98 @@ export default function UserProfile({ user, onSignOut }) {
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                   rows="2"
                 />
+              </div>
+
+              {/* Birth Data Section */}
+              <div className="pt-4 border-t border-gray-200 dark:border-gray-600">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                  Birth Data (for Vedic Astrology)
+                </h3>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Birth Date
+                    </label>
+                    <input
+                      type="date"
+                      value={userConfig.birthDate}
+                      onChange={(e) => handleInputChange('birthDate', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Birth Time
+                    </label>
+                    <input
+                      type="time"
+                      value={userConfig.birthTime}
+                      onChange={(e) => handleInputChange('birthTime', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Birth Location
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={userConfig.birthLocation}
+                      onChange={(e) => handleInputChange('birthLocation', e.target.value)}
+                      placeholder="e.g., New York, NY, USA"
+                      className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleGeocodeLocation}
+                      className="px-3 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors flex items-center gap-1"
+                      title="Find coordinates for this location"
+                    >
+                      <MapPin className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Latitude
+                    </label>
+                    <input
+                      type="number"
+                      step="0.000001"
+                      value={userConfig.birthLatitude}
+                      onChange={(e) => handleInputChange('birthLatitude', e.target.value)}
+                      placeholder="e.g., 40.7128"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Longitude
+                    </label>
+                    <input
+                      type="number"
+                      step="0.000001"
+                      value={userConfig.birthLongitude}
+                      onChange={(e) => handleInputChange('birthLongitude', e.target.value)}
+                      placeholder="e.g., -74.0060"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-md">
+                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                    <strong>Note:</strong> Birth data is used to calculate your natal chart and provide personalized Vedic astrology insights, including dosha analysis, planetary influences, and cosmic timing recommendations.
+                  </p>
+                </div>
               </div>
 
               <div className="pt-4 border-t border-gray-200 dark:border-gray-600">
