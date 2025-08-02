@@ -55,6 +55,106 @@ const TITHI_INFO = {
   'Amavasya': { deity: 'Pitris', nature: 'Rikta (Empty)', activities: 'Ancestor worship' }
 }
 
+// Zodiac sign information
+const ZODIAC_INFO = {
+  'Aries': { 
+    element: 'Fire', 
+    quality: 'Cardinal', 
+    ruler: 'Mars', 
+    nature: 'Dynamic, energetic, pioneering',
+    bodyPart: 'Head',
+    gemstone: 'Red Coral'
+  },
+  'Taurus': { 
+    element: 'Earth', 
+    quality: 'Fixed', 
+    ruler: 'Venus', 
+    nature: 'Stable, patient, sensual',
+    bodyPart: 'Face & Neck',
+    gemstone: 'Diamond'
+  },
+  'Gemini': { 
+    element: 'Air', 
+    quality: 'Mutable', 
+    ruler: 'Mercury', 
+    nature: 'Versatile, communicative, curious',
+    bodyPart: 'Arms & Shoulders',
+    gemstone: 'Emerald'
+  },
+  'Cancer': { 
+    element: 'Water', 
+    quality: 'Cardinal', 
+    ruler: 'Moon', 
+    nature: 'Emotional, nurturing, protective',
+    bodyPart: 'Chest',
+    gemstone: 'Pearl'
+  },
+  'Leo': { 
+    element: 'Fire', 
+    quality: 'Fixed', 
+    ruler: 'Sun', 
+    nature: 'Confident, generous, dramatic',
+    bodyPart: 'Heart',
+    gemstone: 'Ruby'
+  },
+  'Virgo': { 
+    element: 'Earth', 
+    quality: 'Mutable', 
+    ruler: 'Mercury', 
+    nature: 'Analytical, practical, perfectionist',
+    bodyPart: 'Intestines',
+    gemstone: 'Emerald'
+  },
+  'Libra': { 
+    element: 'Air', 
+    quality: 'Cardinal', 
+    ruler: 'Venus', 
+    nature: 'Diplomatic, fair, social',
+    bodyPart: 'Kidneys',
+    gemstone: 'Diamond'
+  },
+  'Scorpio': { 
+    element: 'Water', 
+    quality: 'Fixed', 
+    ruler: 'Mars', 
+    nature: 'Intense, passionate, mysterious',
+    bodyPart: 'Reproductive Organs',
+    gemstone: 'Red Coral'
+  },
+  'Sagittarius': { 
+    element: 'Fire', 
+    quality: 'Mutable', 
+    ruler: 'Jupiter', 
+    nature: 'Optimistic, adventurous, philosophical',
+    bodyPart: 'Thighs',
+    gemstone: 'Yellow Sapphire'
+  },
+  'Capricorn': { 
+    element: 'Earth', 
+    quality: 'Cardinal', 
+    ruler: 'Saturn', 
+    nature: 'Ambitious, disciplined, practical',
+    bodyPart: 'Knees',
+    gemstone: 'Blue Sapphire'
+  },
+  'Aquarius': { 
+    element: 'Air', 
+    quality: 'Fixed', 
+    ruler: 'Saturn', 
+    nature: 'Innovative, independent, humanitarian',
+    bodyPart: 'Ankles',
+    gemstone: 'Blue Sapphire'
+  },
+  'Pisces': { 
+    element: 'Water', 
+    quality: 'Mutable', 
+    ruler: 'Jupiter', 
+    nature: 'Compassionate, intuitive, artistic',
+    bodyPart: 'Feet',
+    gemstone: 'Yellow Sapphire'
+  }
+}
+
 // Moon phase component
 function MoonPhase({ phase }) {
   const getPhaseIcon = (phase) => {
@@ -90,6 +190,8 @@ function MoonPhase({ phase }) {
 
 export default function CosmicContextCompact() {
   const [vedicData, setVedicData] = useState(null)
+  const [showSunTooltip, setShowSunTooltip] = useState(false)
+  const [showMoonTooltip, setShowMoonTooltip] = useState(false)
   const [showNakshatraTooltip, setShowNakshatraTooltip] = useState(false)
   const [showTithiTooltip, setShowTithiTooltip] = useState(false)
 
@@ -105,21 +207,59 @@ export default function CosmicContextCompact() {
   if (!vedicData) return null
 
   const formattedVedic = formatVedicData(vedicData)
+  const sunRashi = formattedVedic.sun.split(' ')[0]
+  const moonRashi = formattedVedic.moon.split(' ')[0]
+  const sunInfo = ZODIAC_INFO[sunRashi] || {}
+  const moonInfo = ZODIAC_INFO[moonRashi] || {}
   const nakshatraInfo = NAKSHATRA_INFO[formattedVedic.nakshatra] || {}
   const tithiInfo = TITHI_INFO[formattedVedic.tithi] || {}
 
   return (
     <div className="flex items-center gap-4 text-white/90 text-xs">
       {/* Sun */}
-      <div className="flex items-center gap-1">
+      <div className="relative flex items-center gap-1 group">
         <Sun className="h-3 w-3 text-yellow-300" />
-        <span className="hidden sm:inline">{formattedVedic.sun.split(' ')[0]}</span>
+        <span className="hidden sm:inline">{sunRashi}</span>
+        <Info 
+          className="h-3 w-3 text-yellow-300 cursor-help opacity-0 group-hover:opacity-100 transition-opacity" 
+          onMouseEnter={() => setShowSunTooltip(true)}
+          onMouseLeave={() => setShowSunTooltip(false)}
+        />
+        
+        {/* Sun Tooltip */}
+        {showSunTooltip && (
+          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg shadow-lg z-50 whitespace-nowrap">
+            <div className="font-semibold mb-1">Sun in {sunRashi}</div>
+            <div>Element: {sunInfo.element}</div>
+            <div>Quality: {sunInfo.quality}</div>
+            <div>Ruler: {sunInfo.ruler}</div>
+            <div>Nature: {sunInfo.nature}</div>
+            <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
+          </div>
+        )}
       </div>
       
       {/* Moon */}
-      <div className="flex items-center gap-1">
+      <div className="relative flex items-center gap-1 group">
         <Moon className="h-3 w-3 text-blue-300" />
-        <span className="hidden sm:inline">{formattedVedic.moon.split(' ')[0]}</span>
+        <span className="hidden sm:inline">{moonRashi}</span>
+        <Info 
+          className="h-3 w-3 text-blue-300 cursor-help opacity-0 group-hover:opacity-100 transition-opacity" 
+          onMouseEnter={() => setShowMoonTooltip(true)}
+          onMouseLeave={() => setShowMoonTooltip(false)}
+        />
+        
+        {/* Moon Tooltip */}
+        {showMoonTooltip && (
+          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg shadow-lg z-50 whitespace-nowrap">
+            <div className="font-semibold mb-1">Moon in {moonRashi}</div>
+            <div>Element: {moonInfo.element}</div>
+            <div>Quality: {moonInfo.quality}</div>
+            <div>Ruler: {moonInfo.ruler}</div>
+            <div>Nature: {moonInfo.nature}</div>
+            <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
+          </div>
+        )}
       </div>
       
       {/* Moon Phase */}
