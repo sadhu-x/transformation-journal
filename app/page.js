@@ -393,7 +393,6 @@ export default function Home() {
           <div 
             className="fixed inset-0 top-0 left-0 right-0 bottom-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-start justify-center z-[9999] p-4 pt-8" 
             style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
-            onClick={() => closeJournalModalWithSave()}
           >
                       <div 
               className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-md rounded-lg max-w-4xl w-full h-[75vh] border border-white/20 dark:border-gray-600/20 shadow-2xl flex flex-col"
