@@ -155,38 +155,7 @@ const ZODIAC_INFO = {
   }
 }
 
-// Moon phase component
-function MoonPhase({ phase }) {
-  const getPhaseIcon = (phase) => {
-    switch (phase.toLowerCase()) {
-      case 'new moon':
-        return '🌑'
-      case 'waxing crescent':
-        return '🌒'
-      case 'first quarter':
-        return '🌓'
-      case 'waxing gibbous':
-        return '🌔'
-      case 'full moon':
-        return '🌕'
-      case 'waning gibbous':
-        return '🌖'
-      case 'last quarter':
-        return '🌗'
-      case 'waning crescent':
-        return '🌘'
-      default:
-        return '🌙'
-    }
-  }
 
-  return (
-    <div className="flex items-center gap-1">
-      <span className="text-lg">{getPhaseIcon(phase)}</span>
-      <span className="hidden xl:inline text-xs">{phase}</span>
-    </div>
-  )
-}
 
 export default function CosmicContextCompact() {
   const [vedicData, setVedicData] = useState(null)
@@ -242,7 +211,7 @@ export default function CosmicContextCompact() {
       {/* Moon */}
       <div className="relative flex items-center gap-1 group">
         <Moon className="h-3 w-3 text-blue-300" />
-        <span className="hidden sm:inline">{moonRashi}</span>
+        <span className="hidden sm:inline">{moonRashi} ({formattedVedic.phase})</span>
         <Info 
           className="h-3 w-3 text-blue-300 cursor-help opacity-0 group-hover:opacity-100 transition-opacity" 
           onMouseEnter={() => setShowMoonTooltip(true)}
@@ -253,6 +222,7 @@ export default function CosmicContextCompact() {
         {showMoonTooltip && (
           <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg shadow-lg z-50 whitespace-nowrap">
             <div className="font-semibold mb-1">Moon in {moonRashi}</div>
+            <div>Phase: {formattedVedic.phase}</div>
             <div>Element: {moonInfo.element}</div>
             <div>Quality: {moonInfo.quality}</div>
             <div>Ruler: {moonInfo.ruler}</div>
@@ -262,52 +232,49 @@ export default function CosmicContextCompact() {
         )}
       </div>
       
-      {/* Moon Phase */}
-      <MoonPhase phase={formattedVedic.phase} />
+              {/* Nakshatra */}
+        <div className="relative flex items-center gap-1 group">
+          <span className="text-purple-300">★</span>
+          <span className="hidden md:inline">{formattedVedic.nakshatra}</span>
+          <Info 
+            className="h-3 w-3 text-purple-300 cursor-help opacity-0 group-hover:opacity-100 transition-opacity" 
+            onMouseEnter={() => setShowNakshatraTooltip(true)}
+            onMouseLeave={() => setShowNakshatraTooltip(false)}
+          />
+          
+          {/* Nakshatra Tooltip */}
+          {showNakshatraTooltip && (
+            <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg shadow-lg z-50 whitespace-nowrap">
+              <div className="font-semibold mb-1">{formattedVedic.nakshatra}</div>
+              <div>Deity: {nakshatraInfo.deity}</div>
+              <div>Element: {nakshatraInfo.element}</div>
+              <div>Quality: {nakshatraInfo.quality}</div>
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-transparent border-b-gray-800"></div>
+            </div>
+          )}
+        </div>
       
-      {/* Nakshatra */}
-      <div className="relative flex items-center gap-1 group">
-        <span className="text-purple-300">★</span>
-        <span className="hidden md:inline">{formattedVedic.nakshatra}</span>
-        <Info 
-          className="h-3 w-3 text-purple-300 cursor-help opacity-0 group-hover:opacity-100 transition-opacity" 
-          onMouseEnter={() => setShowNakshatraTooltip(true)}
-          onMouseLeave={() => setShowNakshatraTooltip(false)}
-        />
-        
-        {/* Nakshatra Tooltip */}
-        {showNakshatraTooltip && (
-          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg shadow-lg z-50 whitespace-nowrap">
-            <div className="font-semibold mb-1">{formattedVedic.nakshatra}</div>
-            <div>Deity: {nakshatraInfo.deity}</div>
-            <div>Element: {nakshatraInfo.element}</div>
-            <div>Quality: {nakshatraInfo.quality}</div>
-            <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
-          </div>
-        )}
-      </div>
-      
-      {/* Tithi */}
-      <div className="relative flex items-center gap-1 group">
-        <span className="text-indigo-300">☽</span>
-        <span className="hidden lg:inline">{formattedVedic.tithi}</span>
-        <Info 
-          className="h-3 w-3 text-indigo-300 cursor-help opacity-0 group-hover:opacity-100 transition-opacity" 
-          onMouseEnter={() => setShowTithiTooltip(true)}
-          onMouseLeave={() => setShowTithiTooltip(false)}
-        />
-        
-        {/* Tithi Tooltip */}
-        {showTithiTooltip && (
-          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg shadow-lg z-50 whitespace-nowrap">
-            <div className="font-semibold mb-1">{formattedVedic.tithi}</div>
-            <div>Deity: {tithiInfo.deity}</div>
-            <div>Nature: {tithiInfo.nature}</div>
-            <div>Activities: {tithiInfo.activities}</div>
-            <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
-          </div>
-        )}
-      </div>
+              {/* Tithi */}
+        <div className="relative flex items-center gap-1 group">
+          <span className="text-indigo-300">☽</span>
+          <span className="hidden lg:inline">{formattedVedic.tithi}</span>
+          <Info 
+            className="h-3 w-3 text-indigo-300 cursor-help opacity-0 group-hover:opacity-100 transition-opacity" 
+            onMouseEnter={() => setShowTithiTooltip(true)}
+            onMouseLeave={() => setShowTithiTooltip(false)}
+          />
+          
+          {/* Tithi Tooltip */}
+          {showTithiTooltip && (
+            <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg shadow-lg z-50 whitespace-nowrap">
+              <div className="font-semibold mb-1">{formattedVedic.tithi}</div>
+              <div>Deity: {tithiInfo.deity}</div>
+              <div>Nature: {tithiInfo.nature}</div>
+              <div>Activities: {tithiInfo.activities}</div>
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-transparent border-b-gray-800"></div>
+            </div>
+          )}
+        </div>
     </div>
   )
 } 
