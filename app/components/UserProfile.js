@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { User, Settings, X, Save, MapPin } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
-import { getUserProfile, updateUserProfile } from '../../lib/dataService'
+import { getUserProfile, updateUserProfile, generateInstructionTemplate } from '../../lib/dataService'
 
 export default function UserProfile({ user, onSignOut }) {
   const [showSettings, setShowSettings] = useState(false)
@@ -176,6 +176,23 @@ export default function UserProfile({ user, onSignOut }) {
     }
   }
 
+  const generateAIPrompt = () => {
+    const prompt = generateInstructionTemplate(userConfig)
+    
+    // Create a downloadable file
+    const blob = new Blob([prompt], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'transformation-journal-ai-prompt.txt'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+    
+    alert('AI prompt with natal chart data has been downloaded!')
+  }
+
   return (
     <>
       <div className="relative">
@@ -338,6 +355,19 @@ export default function UserProfile({ user, onSignOut }) {
                   <p className="text-sm text-blue-700 dark:text-blue-300">
                     <strong>Note:</strong> Birth data is used to calculate your natal chart and provide personalized Vedic astrology insights, including dosha analysis, planetary influences, and cosmic timing recommendations.
                   </p>
+                </div>
+
+                <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-md">
+                  <p className="text-sm text-green-700 dark:text-green-300 mb-3">
+                    <strong>AI Integration:</strong> Generate a personalized AI prompt with your natal chart data for enhanced Vedic astrology analysis.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={generateAIPrompt}
+                    className="w-full px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
+                  >
+                    Generate AI Prompt with Natal Chart
+                  </button>
                 </div>
               </div>
 
