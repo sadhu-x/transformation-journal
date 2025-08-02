@@ -9,34 +9,35 @@ export default function CosmicContext({ date = new Date() }) {
   const [vedicData, setVedicData] = useState(null)
   const [weatherData, setWeatherData] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [weatherLoading, setWeatherLoading] = useState(false)
 
   useEffect(() => {
     const loadData = async () => {
       setLoading(true)
       
-      try {
-        // Get Vedic data (local calculation)
-        const vedic = getVedicData(date)
-        setVedicData(vedic)
-        
-        // Get weather data (API call) with timeout
-        const weatherPromise = getCurrentLocationWeather()
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Weather timeout')), 10000)
-        )
-        
-        const weather = await Promise.race([weatherPromise, timeoutPromise])
-        setWeatherData(weather)
-      } catch (error) {
-        console.log('Error loading cosmic context data:', error.message)
-        // Still set Vedic data even if weather fails
-        if (!vedicData) {
-          const vedic = getVedicData(date)
-          setVedicData(vedic)
+      // Always load Vedic data first (local calculation)
+      const vedic = getVedicData(date)
+      setVedicData(vedic)
+      
+      // Load weather data in background (non-blocking)
+      const loadWeather = async () => {
+        setWeatherLoading(true)
+        try {
+          const weather = await getCurrentLocationWeather()
+          setWeatherData(weather)
+        } catch (error) {
+          console.log('Weather data failed to load:', error.message)
+          // Don't set any weather data, component will work without it
+        } finally {
+          setWeatherLoading(false)
         }
-      } finally {
-        setLoading(false)
       }
+      
+      // Start weather loading but don't wait for it
+      loadWeather()
+      
+      // Set loading to false immediately after Vedic data loads
+      setLoading(false)
     }
     
     loadData()
@@ -133,7 +134,7 @@ export default function CosmicContext({ date = new Date() }) {
       </div>
 
       {/* Weather Section */}
-      {formattedWeather && (
+      {(formattedWeather || weatherLoading) && (
         <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
           <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
             Weather Conditions
@@ -146,7 +147,7 @@ export default function CosmicContext({ date = new Date() }) {
               <div>
                 <div className="text-xs text-gray-500 dark:text-gray-400">Temperature</div>
                 <div className="text-sm font-medium text-gray-900 dark:text-white">
-                  {formattedWeather.temp}
+                  {weatherLoading ? 'Loading...' : formattedWeather?.temp || 'N/A'}
                 </div>
               </div>
             </div>
@@ -157,7 +158,7 @@ export default function CosmicContext({ date = new Date() }) {
               <div>
                 <div className="text-xs text-gray-500 dark:text-gray-400">Humidity</div>
                 <div className="text-sm font-medium text-gray-900 dark:text-white">
-                  {formattedWeather.humidity}
+                  {weatherLoading ? 'Loading...' : formattedWeather?.humidity || 'N/A'}
                 </div>
               </div>
             </div>
@@ -168,7 +169,7 @@ export default function CosmicContext({ date = new Date() }) {
               <div>
                 <div className="text-xs text-gray-500 dark:text-gray-400">Conditions</div>
                 <div className="text-sm font-medium text-gray-900 dark:text-white capitalize">
-                  {formattedWeather.conditions.toLowerCase()}
+                  {weatherLoading ? 'Loading...' : formattedWeather?.conditions?.toLowerCase() || 'N/A'}
                 </div>
               </div>
             </div>
@@ -179,7 +180,7 @@ export default function CosmicContext({ date = new Date() }) {
               <div>
                 <div className="text-xs text-gray-500 dark:text-gray-400">Wind</div>
                 <div className="text-sm font-medium text-gray-900 dark:text-white">
-                  {formattedWeather.wind}
+                  {weatherLoading ? 'Loading...' : formattedWeather?.wind || 'N/A'}
                 </div>
               </div>
             </div>
