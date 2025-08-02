@@ -221,12 +221,8 @@ ${nonNegotiablesJson}
                       {entry.aiResponse && (
                         <div className="text-sm text-gray-600 dark:text-gray-300 italic">
                           AI: {entry.aiResponse.length > 80 ? 
-                            <span dangerouslySetInnerHTML={{ 
-                              __html: renderMarkdown(entry.aiResponse.substring(0, 80) + '...') 
-                            }} /> : 
-                            <span dangerouslySetInnerHTML={{ 
-                              __html: renderMarkdown(entry.aiResponse) 
-                            }} />
+                            stripMarkdown(entry.aiResponse.substring(0, 80) + '...') : 
+                            stripMarkdown(entry.aiResponse)
                           }
                         </div>
                       )}
