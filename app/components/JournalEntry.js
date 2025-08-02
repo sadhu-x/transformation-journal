@@ -173,9 +173,9 @@ const MarkdownEditor = ({ value, onChange, placeholder, fieldId, onFocus }) => {
       <div className="flex-1 relative">
         {isPreviewMode ? (
           /* Markdown Preview */
-          <div className="w-full h-full p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white overflow-auto">
+          <div className="w-full h-full p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white overflow-y-auto max-h-full">
             {value ? (
-              <div className="prose prose-sm dark:prose-invert max-w-none">
+              <div className="prose prose-sm dark:prose-invert max-w-none min-h-full">
                 <ReactMarkdown 
                   remarkPlugins={[remarkGfm]}
                   components={{
