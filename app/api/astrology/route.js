@@ -106,6 +106,10 @@ export async function POST(request) {
     const dateTime = new Date(`${birthDate}T${birthTime}`)
     const isoDateTime = dateTime.toISOString().replace('Z', '+00:00')
     
+    // Debug datetime formatting
+    console.log('Original datetime:', `${birthDate}T${birthTime}`)
+    console.log('ISO datetime:', isoDateTime)
+    
     // Build query parameters (no need for extra encoding since URLSearchParams handles it)
     const params = new URLSearchParams({
       ayanamsa: '1', // Lahiri ayanamsa
@@ -114,6 +118,7 @@ export async function POST(request) {
     })
 
     console.log('Query parameters:', params.toString())
+    console.log('Decoded datetime from params:', params.get('datetime'))
 
     // Try Prokerala birth details endpoint (GET method with query parameters)
     try {
