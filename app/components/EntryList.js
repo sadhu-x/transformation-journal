@@ -260,14 +260,14 @@ ${nonNegotiablesJson}
                           onMouseEnter={(e) => handleTooltipEnter('discipline', e)}
                           onMouseLeave={() => handleTooltipLeave('discipline')}
                         >
-                          {getScaleLabel(entry.tradingMindset, 'discipline')}
+                          {getScaleLabel(entry.discipline, 'discipline')}
                         </span>
                         <span 
                           className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900/20 dark:text-indigo-300"
                           onMouseEnter={(e) => handleTooltipEnter('surrender', e)}
                           onMouseLeave={() => handleTooltipLeave('surrender')}
                         >
-                          {getScaleLabel(entry.spiritualState, 'surrender')}
+                          {getScaleLabel(entry.surrender, 'surrender')}
                         </span>
                       </div>
                       {showTooltip.discipline && (
@@ -279,7 +279,7 @@ ${nonNegotiablesJson}
                             transform: 'translateX(-50%)'
                           }}
                         >
-                          {disciplineTooltips[entry.tradingMindset]}
+                          {disciplineTooltips[entry.discipline]}
                           <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-transparent border-b-gray-900"></div>
                         </div>
                       )}
@@ -292,7 +292,7 @@ ${nonNegotiablesJson}
                             transform: 'translateX(-50%)'
                           }}
                         >
-                          {surrenderTooltips[entry.spiritualState]}
+                          {surrenderTooltips[entry.surrender]}
                           <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-transparent border-b-gray-900"></div>
                         </div>
                       )}

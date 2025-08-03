@@ -106,8 +106,8 @@ Each journal entry contains:
   "id": 1234567890,
   "timestamp": "2024-01-15T10:30:00.000Z",
   "activity": "Morning meditation, work session, evening walk",
-  "tradingMindset": 4, // Discipline scale (0-6)
-  "spiritualState": 5, // Surrender scale (0-6)
+  "discipline": 4, // Discipline scale (0-6)
+  "surrender": 5, // Surrender scale (0-6)
   "gratitude": "Grateful for my health, supportive friends, and this moment",
   "pain": "Feeling some resistance to change, acknowledging this discomfort",
   "insight": "I notice I'm more disciplined when I start my day with meditation"

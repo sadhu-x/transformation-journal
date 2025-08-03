@@ -90,7 +90,7 @@ export default function ImportData({ onImportEntries }) {
           }
           
           // Convert numeric values
-          if (header === 'tradingMindset' || header === 'spiritualState') {
+          if (header === 'discipline' || header === 'surrender') {
             value = parseInt(value) || 3
           }
           

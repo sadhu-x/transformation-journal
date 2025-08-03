@@ -249,8 +249,8 @@ export default function JournalEntry({ onAddEntry, onOpenImageModal, imageCommen
     insight: '',
     aiResponse: '',
     wishFulfilled: '',
-    tradingMindset: 3,
-    spiritualState: 3
+    discipline: 3,
+    surrender: 3
   })
   const [currentTime, setCurrentTime] = useState('')
   const [attachments, setAttachments] = useState([])
@@ -292,8 +292,8 @@ export default function JournalEntry({ onAddEntry, onOpenImageModal, imageCommen
         insight: editingEntry.insight || '',
         aiResponse: editingEntry.aiResponse || '',
         wishFulfilled: editingEntry.wishFulfilled || '',
-        tradingMindset: editingEntry.tradingMindset || 3,
-        spiritualState: editingEntry.spiritualState || 3
+            discipline: editingEntry.discipline || 3,
+    surrender: editingEntry.surrender || 3
       })
       setAttachments(editingEntry.attachments || [])
     } else {
@@ -305,8 +305,8 @@ export default function JournalEntry({ onAddEntry, onOpenImageModal, imageCommen
           pain: '',
           insight: '',
           aiResponse: '',
-          tradingMindset: 3,
-          spiritualState: 3
+          discipline: 3,
+          surrender: 3
         })
         setAttachments([])
         setNewLink('')
@@ -325,8 +325,8 @@ export default function JournalEntry({ onAddEntry, onOpenImageModal, imageCommen
       insight: '',
       aiResponse: '',
       wishFulfilled: '',
-      tradingMindset: 3,
-      spiritualState: 3
+      discipline: 3,
+      surrender: 3
     })
     setAttachments([])
     setNewLink('')
@@ -1000,8 +1000,8 @@ ${entryJson}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <ScaleInput
                   label="Discipline"
-                  value={entry.tradingMindset}
-                  onChange={(value) => setEntry({...entry, tradingMindset: value})}
+                  value={entry.discipline}
+                  onChange={(value) => setEntry({...entry, discipline: value})}
                   scaleType="discipline"
                   icon={TrendingUp}
                   color="amber"
@@ -1009,8 +1009,8 @@ ${entryJson}
                 />
                 <ScaleInput
                   label="Surrender"
-                  value={entry.spiritualState}
-                  onChange={(value) => setEntry({...entry, spiritualState: value})}
+                  value={entry.surrender}
+                  onChange={(value) => setEntry({...entry, surrender: value})}
                   scaleType="surrender"
                   icon={Zap}
                   color="indigo"
