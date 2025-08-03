@@ -3,12 +3,17 @@
 import { useState, useEffect } from 'react'
 import { User, Settings, X, Save, MapPin } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
-import { getUserProfile, updateUserProfile, generateInstructionTemplate } from '../../lib/dataService'
+import { getUserProfile, updateUserProfile, generateInstructionTemplate, fetchAndStoreBirthChart } from '../../lib/dataService'
 
 export default function UserProfile({ user, onSignOut }) {
   const [showSettings, setShowSettings] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [activeTab, setActiveTab] = useState(0)
+  const [birthChartStatus, setBirthChartStatus] = useState({
+    status: 'idle', // 'idle', 'loading', 'success', 'error', 'cached'
+    message: '',
+    lastCalculated: null
+  })
   const [userConfig, setUserConfig] = useState({
     primaryGoals: '',
     keyPractices: '',
@@ -83,6 +88,35 @@ export default function UserProfile({ user, onSignOut }) {
     loadUserConfig()
   }, [user])
 
+  // Check for existing birth chart data when birth data is loaded
+  useEffect(() => {
+    const checkBirthChartData = async () => {
+      if (user && userConfig.birthDate && userConfig.birthTime && userConfig.birthLatitude && userConfig.birthLongitude) {
+        try {
+          const { getBirthChartData } = await import('../../lib/dataService')
+          const existingData = await getBirthChartData(
+            userConfig.birthDate,
+            userConfig.birthTime,
+            userConfig.birthLatitude,
+            userConfig.birthLongitude
+          )
+          
+          if (existingData) {
+            setBirthChartStatus({
+              status: 'cached',
+              message: 'Natal chart data available',
+              lastCalculated: existingData.calculated_at
+            })
+          }
+        } catch (error) {
+          console.error('Error checking birth chart data:', error)
+        }
+      }
+    }
+
+    checkBirthChartData()
+  }, [user, userConfig.birthDate, userConfig.birthTime, userConfig.birthLatitude, userConfig.birthLongitude])
+
   const handleSignOut = async () => {
     try {
       await supabase.auth.signOut()
@@ -131,6 +165,12 @@ export default function UserProfile({ user, onSignOut }) {
           console.log('Successfully saved to Supabase user_profiles')
         } catch (error) {
           console.warn('Could not save to Supabase user_profiles:', error)
+          // Provide more specific error message based on error type
+          if (error.code === '23505') {
+            console.warn('Profile already exists, this is normal for existing users')
+          } else {
+            console.warn('Database error:', error.message)
+          }
         }
       }
       
@@ -196,6 +236,54 @@ export default function UserProfile({ user, onSignOut }) {
     } catch (error) {
       console.error('Error generating AI prompt:', error)
       alert('Error generating AI prompt. Please try again.')
+    }
+  }
+
+  const handleFetchBirthChart = async () => {
+    if (!userConfig.birthDate || !userConfig.birthTime || !userConfig.birthLatitude || !userConfig.birthLongitude) {
+      alert('Please fill in all birth data fields before fetching your natal chart.')
+      return
+    }
+
+    setBirthChartStatus({
+      status: 'loading',
+      message: 'Calculating your natal chart...',
+      lastCalculated: null
+    })
+
+    try {
+      const result = await fetchAndStoreBirthChart(
+        userConfig.birthDate,
+        userConfig.birthTime,
+        userConfig.birthLatitude,
+        userConfig.birthLongitude
+      )
+
+      if (result.success) {
+        const status = result.cached ? 'cached' : 'success'
+        const message = result.cached 
+          ? 'Natal chart data retrieved from database'
+          : 'Natal chart calculated and stored successfully'
+        
+        setBirthChartStatus({
+          status,
+          message,
+          lastCalculated: result.data.calculated_at
+        })
+      } else {
+        setBirthChartStatus({
+          status: 'error',
+          message: result.error || 'Failed to calculate natal chart',
+          lastCalculated: null
+        })
+      }
+    } catch (error) {
+      console.error('Error fetching birth chart:', error)
+      setBirthChartStatus({
+        status: 'error',
+        message: 'Error calculating natal chart. Please try again.',
+        lastCalculated: null
+      })
     }
   }
 
@@ -388,6 +476,103 @@ export default function UserProfile({ user, onSignOut }) {
                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                       />
                     </div>
+                  </div>
+
+                  {/* Birth Chart Status Indicator */}
+                  <div className="mt-4 p-3 rounded-md border">
+                    {birthChartStatus.status === 'idle' && (
+                      <div className="text-center">
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                          Your natal chart data will be calculated and stored for future use.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={handleFetchBirthChart}
+                          className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+                        >
+                          Calculate Natal Chart
+                        </button>
+                      </div>
+                    )}
+                    
+                    {birthChartStatus.status === 'loading' && (
+                      <div className="text-center">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto mb-2"></div>
+                        <p className="text-sm text-blue-600 dark:text-blue-400">
+                          {birthChartStatus.message}
+                        </p>
+                      </div>
+                    )}
+                    
+                    {birthChartStatus.status === 'success' && (
+                      <div className="text-center">
+                        <div className="w-6 h-6 bg-green-500 rounded-full mx-auto mb-2 flex items-center justify-center">
+                          <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                        <p className="text-sm text-green-600 dark:text-green-400 font-medium">
+                          {birthChartStatus.message}
+                        </p>
+                        {birthChartStatus.lastCalculated && (
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            Calculated: {new Date(birthChartStatus.lastCalculated).toLocaleString()}
+                          </p>
+                        )}
+                        <button
+                          type="button"
+                          onClick={handleFetchBirthChart}
+                          className="mt-2 px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                        >
+                          Recalculate
+                        </button>
+                      </div>
+                    )}
+                    
+                    {birthChartStatus.status === 'cached' && (
+                      <div className="text-center">
+                        <div className="w-6 h-6 bg-blue-500 rounded-full mx-auto mb-2 flex items-center justify-center">
+                          <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
+                          </svg>
+                        </div>
+                        <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">
+                          {birthChartStatus.message}
+                        </p>
+                        {birthChartStatus.lastCalculated && (
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            Last calculated: {new Date(birthChartStatus.lastCalculated).toLocaleString()}
+                          </p>
+                        )}
+                        <button
+                          type="button"
+                          onClick={handleFetchBirthChart}
+                          className="mt-2 px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                        >
+                          Recalculate
+                        </button>
+                      </div>
+                    )}
+                    
+                    {birthChartStatus.status === 'error' && (
+                      <div className="text-center">
+                        <div className="w-6 h-6 bg-red-500 rounded-full mx-auto mb-2 flex items-center justify-center">
+                          <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                        <p className="text-sm text-red-600 dark:text-red-400">
+                          {birthChartStatus.message}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={handleFetchBirthChart}
+                          className="mt-2 px-3 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                        >
+                          Try Again
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-md">
