@@ -10,6 +10,12 @@ export async function POST(request) {
   try {
     const { birthDate, birthTime, latitude, longitude } = await request.json()
 
+    console.log('=== Astrology API Request ===')
+    console.log('Birth data:', { birthDate, birthTime, latitude, longitude })
+    console.log('API Key available:', !!PROKERALA_API_KEY)
+    console.log('API Key length:', PROKERALA_API_KEY ? PROKERALA_API_KEY.length : 0)
+    console.log('API Key starts with:', PROKERALA_API_KEY ? PROKERALA_API_KEY.substring(0, 10) + '...' : 'N/A')
+
     if (!birthDate || !birthTime || !latitude || !longitude) {
       return NextResponse.json(
         { error: 'Missing required birth data' },
@@ -36,6 +42,12 @@ export async function POST(request) {
     // Try Prokerala planetary positions endpoint
     try {
       console.log('Calling Prokerala planetary positions endpoint')
+      console.log('API URL:', `${PROKERALA_API_URL}/planetary-positions`)
+      console.log('Request payload:', {
+        ayanamsa: 1, // Lahiri ayanamsa
+        coordinates: `${latitude},${longitude}`,
+        datetime: `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}T${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:00`
+      })
       
       const response = await fetch(`${PROKERALA_API_URL}/planetary-positions`, {
         method: 'POST',
@@ -50,6 +62,34 @@ export async function POST(request) {
         })
       })
 
+      // Also try the natal chart endpoint as a fallback
+      if (!response.ok) {
+        console.log('Trying Prokerala natal chart endpoint as fallback...')
+        const natalResponse = await fetch(`${PROKERALA_API_URL}/natal-chart`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${PROKERALA_API_KEY}`
+          },
+          body: JSON.stringify({
+            ayanamsa: 1,
+            coordinates: `${latitude},${longitude}`,
+            datetime: `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}T${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:00`
+          })
+        })
+
+        if (natalResponse.ok) {
+          const natalData = await natalResponse.json()
+          console.log('✅ Natal chart API response:', natalData)
+          const formattedData = formatProkeralaData(natalData)
+          if (formattedData) {
+            return NextResponse.json(formattedData)
+          }
+        } else {
+          console.warn('❌ Natal chart API also failed:', natalResponse.status, natalResponse.statusText)
+        }
+      }
+
       if (response.ok) {
         const data = await response.json()
         console.log('Prokerala API response:', data)
@@ -62,9 +102,10 @@ export async function POST(request) {
           return NextResponse.json(formattedData)
         }
       } else {
-        console.warn('Prokerala API failed:', response.status, response.statusText)
+        console.warn('❌ Prokerala API failed:', response.status, response.statusText)
         const errorText = await response.text()
-        console.warn('API error response:', errorText)
+        console.warn('❌ API error response:', errorText)
+        console.warn('❌ Response headers:', Object.fromEntries(response.headers.entries()))
       }
     } catch (apiError) {
       console.warn('Prokerala API error:', apiError)

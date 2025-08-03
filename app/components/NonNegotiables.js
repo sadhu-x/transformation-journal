@@ -10,15 +10,29 @@ export default function NonNegotiables({ items = [], onUpdateItems }) {
   const [editText, setEditText] = useState('')
   const [newItemText, setNewItemText] = useState('')
   const [showAddForm, setShowAddForm] = useState(false)
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
+  const [selectedDate, setSelectedDate] = useState(() => {
+    // Get today's date in local timezone
+    const now = new Date()
+    const year = now.getFullYear()
+    const month = String(now.getMonth() + 1).padStart(2, '0')
+    const day = String(now.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  })
 
-  // Get today's date in YYYY-MM-DD format
-  const getTodayDate = () => new Date().toISOString().split('T')[0]
+  // Get today's date in YYYY-MM-DD format in local timezone
+  const getTodayDate = () => {
+    const now = new Date()
+    const year = now.getFullYear()
+    const month = String(now.getMonth() + 1).padStart(2, '0')
+    const day = String(now.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
   
   // Filter items for the selected date
   const getItemsForDate = (date) => {
     return items.filter(item => {
-      const itemDate = new Date(item.created_at || item.createdAt).toISOString().split('T')[0]
+      // Use the date field if available, otherwise fall back to created_at
+      const itemDate = item.date || new Date(item.created_at || item.createdAt).toISOString().split('T')[0]
       return itemDate === date
     })
   }
@@ -135,7 +149,10 @@ export default function NonNegotiables({ items = [], onUpdateItems }) {
   const copyFromYesterday = async () => {
     const yesterday = new Date()
     yesterday.setDate(yesterday.getDate() - 1)
-    const yesterdayDate = yesterday.toISOString().split('T')[0]
+    const year = yesterday.getFullYear()
+    const month = String(yesterday.getMonth() + 1).padStart(2, '0')
+    const day = String(yesterday.getDate()).padStart(2, '0')
+    const yesterdayDate = `${year}-${month}-${day}`
     
     const yesterdayItems = getItemsForDate(yesterdayDate)
     
@@ -268,13 +285,19 @@ export default function NonNegotiables({ items = [], onUpdateItems }) {
               onClick={() => {
                 const yesterday = new Date()
                 yesterday.setDate(yesterday.getDate() - 1)
-                setSelectedDate(yesterday.toISOString().split('T')[0])
+                const year = yesterday.getFullYear()
+                const month = String(yesterday.getMonth() + 1).padStart(2, '0')
+                const day = String(yesterday.getDate()).padStart(2, '0')
+                setSelectedDate(`${year}-${month}-${day}`)
               }}
               className={`px-2 py-1 text-xs rounded transition-colors ${
                 selectedDate === (() => {
                   const yesterday = new Date()
                   yesterday.setDate(yesterday.getDate() - 1)
-                  return yesterday.toISOString().split('T')[0]
+                  const year = yesterday.getFullYear()
+                  const month = String(yesterday.getMonth() + 1).padStart(2, '0')
+                  const day = String(yesterday.getDate()).padStart(2, '0')
+                  return `${year}-${month}-${day}`
                 })()
                   ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
                   : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
@@ -296,13 +319,19 @@ export default function NonNegotiables({ items = [], onUpdateItems }) {
               onClick={() => {
                 const tomorrow = new Date()
                 tomorrow.setDate(tomorrow.getDate() + 1)
-                setSelectedDate(tomorrow.toISOString().split('T')[0])
+                const year = tomorrow.getFullYear()
+                const month = String(tomorrow.getMonth() + 1).padStart(2, '0')
+                const day = String(tomorrow.getDate()).padStart(2, '0')
+                setSelectedDate(`${year}-${month}-${day}`)
               }}
               className={`px-2 py-1 text-xs rounded transition-colors ${
                 selectedDate === (() => {
                   const tomorrow = new Date()
                   tomorrow.setDate(tomorrow.getDate() + 1)
-                  return tomorrow.toISOString().split('T')[0]
+                  const year = tomorrow.getFullYear()
+                  const month = String(tomorrow.getMonth() + 1).padStart(2, '0')
+                  const day = String(tomorrow.getDate()).padStart(2, '0')
+                  return `${year}-${month}-${day}`
                 })()
                   ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
                   : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
