@@ -120,10 +120,10 @@ export async function POST(request) {
     console.log('Query parameters:', params.toString())
     console.log('Decoded datetime from params:', params.get('datetime'))
 
-    // Try Prokerala natal chart endpoint (GET method with query parameters)
+    // Try Prokerala Western natal chart endpoint (GET method with query parameters)
     try {
-      console.log('Calling Prokerala natal chart endpoint with GET')
-      const url = `${PROKERALA_API_URL}/natal-chart?${params.toString()}`
+      console.log('Calling Prokerala Western natal chart endpoint with GET')
+      const url = `${PROKERALA_API_URL}/western/natal-chart?${params.toString()}`
       console.log('API URL:', url)
       console.log('Query parameters:', params.toString())
       
