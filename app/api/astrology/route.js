@@ -65,6 +65,14 @@ export async function POST(request) {
 
     console.log('=== Astrology API Request ===')
     console.log('Birth data:', { birthDate, birthTime, latitude, longitude })
+    
+    // Enhanced debugging for environment variables
+    console.log('Environment check:')
+    console.log('- PROKERALA_CLIENT_ID exists:', !!process.env.PROKERALA_CLIENT_ID)
+    console.log('- PROKERALA_CLIENT_SECRET exists:', !!process.env.PROKERALA_CLIENT_SECRET)
+    console.log('- PROKERALA_CLIENT_ID length:', process.env.PROKERALA_CLIENT_ID ? process.env.PROKERALA_CLIENT_ID.length : 0)
+    console.log('- PROKERALA_CLIENT_SECRET length:', process.env.PROKERALA_CLIENT_SECRET ? process.env.PROKERALA_CLIENT_SECRET.length : 0)
+    console.log('- All env vars:', Object.keys(process.env).filter(key => key.includes('PROKERALA')))
 
     if (!birthDate || !birthTime || !latitude || !longitude) {
       return NextResponse.json(
@@ -75,6 +83,7 @@ export async function POST(request) {
 
     if (!PROKERALA_CLIENT_ID || !PROKERALA_CLIENT_SECRET) {
       console.warn('Prokerala credentials not found')
+      console.warn('Available environment variables:', Object.keys(process.env).filter(key => key.includes('PROKERALA')))
       return NextResponse.json(
         { error: 'Astrology API credentials not configured. Please set up PROKERALA_CLIENT_ID and PROKERALA_CLIENT_SECRET in your environment variables.' },
         { status: 503 }
