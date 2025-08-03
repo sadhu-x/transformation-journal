@@ -247,6 +247,40 @@ function formatProkeralaData(data) {
     
     const planets = []
     
+    // Extract planetary data from nakshatra details
+    if (actualData.nakshatra_details) {
+      console.log('Processing nakshatra details for planetary data')
+      
+      // Extract Sun (Soorya) data
+      if (actualData.nakshatra_details.soorya_rasi) {
+        const sun = actualData.nakshatra_details.soorya_rasi
+        planets.push({
+          planet: 'Sun',
+          rashi: sun.name,
+          degree: 0, // We don't have exact degrees from kundli endpoint
+          nakshatra: 'Unknown'
+        })
+        console.log('Added Sun:', sun.name)
+      }
+      
+      // Extract Moon (Chandra) data
+      if (actualData.nakshatra_details.chandra_rasi) {
+        const moon = actualData.nakshatra_details.chandra_rasi
+        planets.push({
+          planet: 'Moon',
+          rashi: moon.name,
+          degree: 0, // We don't have exact degrees from kundli endpoint
+          nakshatra: actualData.nakshatra_details.nakshatra?.name || 'Unknown'
+        })
+        console.log('Added Moon:', moon.name, 'Nakshatra:', actualData.nakshatra_details.nakshatra?.name)
+      }
+      
+      // Extract zodiac (ascendant) data
+      if (actualData.nakshatra_details.zodiac) {
+        console.log('Found zodiac data:', actualData.nakshatra_details.zodiac)
+      }
+    }
+    
     // Prokerala returns data in a specific format
     if (actualData.planets) {
       console.log('Processing planets:', actualData.planets.length)
@@ -282,7 +316,15 @@ function formatProkeralaData(data) {
       nakshatra: 'Unknown'
     }
 
-    if (actualData.ascendant) {
+    // Try to get ascendant from zodiac data
+    if (actualData.nakshatra_details?.zodiac) {
+      console.log('Processing ascendant from zodiac:', actualData.nakshatra_details.zodiac)
+      ascendant = {
+        rashi: actualData.nakshatra_details.zodiac.name || 'Unknown',
+        degree: 0, // We don't have exact degrees
+        nakshatra: actualData.nakshatra_details.nakshatra?.name || 'Unknown'
+      }
+    } else if (actualData.ascendant) {
       console.log('Processing ascendant:', actualData.ascendant)
       ascendant = {
         rashi: actualData.ascendant.sign || actualData.ascendant.rashi || actualData.ascendant.zodiac || 'Unknown',
