@@ -5,18 +5,18 @@
 ALTER TABLE journal_entries ADD COLUMN IF NOT EXISTS discipline INTEGER DEFAULT 3;
 ALTER TABLE journal_entries ADD COLUMN IF NOT EXISTS surrender INTEGER DEFAULT 3;
 
--- Copy data from old columns to new columns
+-- Copy data from old columns to new columns (using correct case)
 UPDATE journal_entries 
-SET discipline = tradingMindset 
-WHERE tradingMindset IS NOT NULL;
+SET discipline = "tradingMindset" 
+WHERE "tradingMindset" IS NOT NULL;
 
 UPDATE journal_entries 
-SET surrender = spiritualState 
-WHERE spiritualState IS NOT NULL;
+SET surrender = "spiritualState" 
+WHERE "spiritualState" IS NOT NULL;
 
 -- Drop the old columns
-ALTER TABLE journal_entries DROP COLUMN IF EXISTS tradingMindset;
-ALTER TABLE journal_entries DROP COLUMN IF EXISTS spiritualState;
+ALTER TABLE journal_entries DROP COLUMN IF EXISTS "tradingMindset";
+ALTER TABLE journal_entries DROP COLUMN IF EXISTS "spiritualState";
 
 -- Add constraints to ensure values are between 0 and 6
 ALTER TABLE journal_entries ADD CONSTRAINT discipline_range CHECK (discipline >= 0 AND discipline <= 6);
