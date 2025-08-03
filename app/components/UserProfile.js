@@ -5,6 +5,7 @@ import { User, Settings, X, Save, MapPin } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { getUserProfile, updateUserProfile, generateInstructionTemplate } from '../../lib/dataService'
 import { debugSimplePlanetPosition, calculateCorrectAyanamsa } from '../../lib/simpleNatalChart.js'
+import { debugAPICalculation } from '../../lib/astrologyAPI.js'
 
 export default function UserProfile({ user, onSignOut }) {
   const [showSettings, setShowSettings] = useState(false)
@@ -178,21 +179,26 @@ export default function UserProfile({ user, onSignOut }) {
     }
   }
 
-  const generateAIPrompt = () => {
-    const prompt = generateInstructionTemplate(userConfig)
-    
-    // Create a downloadable file
-    const blob = new Blob([prompt], { type: 'text/plain' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'transformation-journal-ai-prompt.txt'
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-    
-    alert('AI prompt with natal chart data has been downloaded!')
+  const generateAIPrompt = async () => {
+    try {
+      const prompt = await generateInstructionTemplate(userConfig)
+      
+      // Create a downloadable file
+      const blob = new Blob([prompt], { type: 'text/plain' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'transformation-journal-ai-prompt.txt'
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+      
+      alert('AI prompt with natal chart data has been downloaded!')
+    } catch (error) {
+      console.error('Error generating AI prompt:', error)
+      alert('Error generating AI prompt. Please try again.')
+    }
   }
 
   const debugMoonPosition = () => {
@@ -275,6 +281,39 @@ Difference: ${ayanamsaCheck.difference.toFixed(6)}°
     } catch (error) {
       console.error('Error debugging all planets:', error)
       alert('Error calculating planetary positions')
+    }
+  }
+
+  const debugAPI = async () => {
+    if (!userConfig.birthDate || !userConfig.birthTime || !userConfig.birthLatitude || !userConfig.birthLongitude) {
+      alert('Please fill in all birth data first')
+      return
+    }
+    
+    try {
+      const result = await debugAPICalculation(
+        userConfig.birthDate, 
+        userConfig.birthTime, 
+        userConfig.birthLatitude, 
+        userConfig.birthLongitude
+      )
+      
+      if (result) {
+        let debugInfo = 'API Natal Chart Data:\n\n'
+        debugInfo += `Ascendant: ${result.ascendant?.rashi} ${result.ascendant?.degree}° - ${result.ascendant?.nakshatra}\n\n`
+        debugInfo += 'Planets:\n'
+        result.planets?.forEach(planet => {
+          debugInfo += `  ${planet.planet}: ${planet.rashi} ${planet.degree}° - ${planet.nakshatra}\n`
+        })
+        
+        console.log('API Debug Result:', result)
+        alert(debugInfo)
+      } else {
+        alert('API returned no data. Check console for details.')
+      }
+    } catch (error) {
+      console.error('Error debugging API:', error)
+      alert('Error testing API. Check console for details.')
     }
   }
 
@@ -494,9 +533,16 @@ Difference: ${ayanamsaCheck.difference.toFixed(6)}°
                     <button
                       type="button"
                       onClick={debugAllPlanets}
-                      className="w-full px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors"
+                      className="w-full px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors mb-2"
                     >
                       Debug All Planets
+                    </button>
+                    <button
+                      type="button"
+                      onClick={debugAPI}
+                      className="w-full px-4 py-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 transition-colors"
+                    >
+                      Test API Calculation
                     </button>
                   </div>
                 </>
