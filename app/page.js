@@ -6,6 +6,7 @@ import { getEntries, addEntry as addEntryToDB, updateEntry as updateEntryToDB, d
 import JournalEntry from './components/JournalEntry'
 import EntryList from './components/EntryList'
 import NonNegotiables from './components/NonNegotiables'
+import BookList from './components/BookList'
 import TabContainer from './components/TabContainer'
 import CosmicContextCompact from './components/CosmicContextCompact'
 import ExportDropdown from './components/ExportData'
@@ -384,6 +385,12 @@ export default function Home() {
             <NonNegotiables 
               items={nonNegotiables}
               onUpdateItems={setNonNegotiables}
+            />
+          )}
+          {activeTab === 'books' && (
+            <BookList 
+              userProfile={user}
+              cosmicData={null}
             />
           )}
         </TabContainer>
