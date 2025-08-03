@@ -106,14 +106,11 @@ export async function POST(request) {
     const dateTime = new Date(`${birthDate}T${birthTime}`)
     const isoDateTime = dateTime.toISOString().replace('Z', '+00:00')
     
-    // Encode the datetime parameter as mentioned in the documentation
-    const encodedDateTime = encodeURIComponent(isoDateTime)
-
-    // Build query parameters
+    // Build query parameters (no need for extra encoding since URLSearchParams handles it)
     const params = new URLSearchParams({
       ayanamsa: '1', // Lahiri ayanamsa
       coordinates: `${latitude},${longitude}`,
-      datetime: encodedDateTime
+      datetime: isoDateTime
     })
 
     console.log('Query parameters:', params.toString())
