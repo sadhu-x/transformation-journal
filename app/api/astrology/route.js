@@ -120,10 +120,10 @@ export async function POST(request) {
     console.log('Query parameters:', params.toString())
     console.log('Decoded datetime from params:', params.get('datetime'))
 
-    // Try Prokerala Vedic planetary positions endpoint (GET method with query parameters)
+    // Try Prokerala divisional position endpoint (GET method with query parameters)
     try {
-      console.log('Calling Prokerala Vedic planetary positions endpoint with GET')
-      const url = `${PROKERALA_API_URL}/planetary-positions?${params.toString()}`
+      console.log('Calling Prokerala divisional position endpoint with GET')
+      const url = `${PROKERALA_API_URL}/divisional-position?${params.toString()}`
       console.log('API URL:', url)
       console.log('Query parameters:', params.toString())
       
