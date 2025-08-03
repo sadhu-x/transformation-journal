@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { BookOpen, Plus, CheckCircle, Clock, Target, TrendingUp, Heart, Brain, DollarSign, Zap } from 'lucide-react'
 import { getPersonalizedRecommendations, getPersonalizedReadingSchedule, getCategoryBalanceRecommendations, getCosmicReadingRecommendations } from '../../lib/bookDatabase'
+import { getBooks, addBook, updateBook, deleteBook } from '../../lib/dataService'
 
 export default function BookList({ userProfile, cosmicData }) {
   const [books, setBooks] = useState([])
@@ -39,24 +40,42 @@ export default function BookList({ userProfile, cosmicData }) {
   }
 
   useEffect(() => {
-    try {
-      // Load user's existing books from localStorage or database
-      const savedBooks = localStorage.getItem('userBooks')
-      if (savedBooks) {
-        setBooks(JSON.parse(savedBooks))
-      } else {
-        // Initialize with personalized recommendations based on user's goals
-        // Handle case where userProfile might be null or not have expected properties
-        const safeUserProfile = userProfile || {}
-        const initialBooks = getPersonalizedRecommendations(safeUserProfile)
-        setBooks(initialBooks)
-        localStorage.setItem('userBooks', JSON.stringify(initialBooks))
+    const loadBooks = async () => {
+      try {
+        // Load user's existing books from Supabase or localStorage fallback
+        const existingBooks = await getBooks()
+        
+        if (existingBooks && existingBooks.length > 0) {
+          setBooks(existingBooks)
+        } else {
+          // Initialize with personalized recommendations based on user's goals
+          // Handle case where userProfile might be null or not have expected properties
+          const safeUserProfile = userProfile || {}
+          const initialBooks = getPersonalizedRecommendations(safeUserProfile)
+          
+          // Add initial books to database
+          if (initialBooks.length > 0) {
+            const addedBooks = []
+            for (const book of initialBooks) {
+              try {
+                const addedBook = await addBook(book)
+                if (addedBook) {
+                  addedBooks.push(addedBook)
+                }
+              } catch (error) {
+                console.error('Error adding initial book:', error)
+              }
+            }
+            setBooks(addedBooks)
+          }
+        }
+      } catch (error) {
+        console.error('Error loading books:', error)
+        setBooks([])
       }
-    } catch (error) {
-      console.error('Error initializing BookList:', error)
-      // Fallback to empty array if there's an error
-      setBooks([])
     }
+
+    loadBooks()
   }, [userProfile])
 
   const getReadingSchedule = () => {
@@ -89,34 +108,50 @@ export default function BookList({ userProfile, cosmicData }) {
     }
   }
 
-  const addBook = () => {
+  const handleAddBook = async () => {
     if (newBook.title && newBook.author) {
-      const book = {
-        ...newBook,
-        id: Date.now(),
-        addedAt: new Date().toISOString()
+      try {
+        const addedBook = await addBook(newBook)
+        if (addedBook) {
+          setBooks(prev => [addedBook, ...prev])
+          setNewBook({
+            title: '',
+            author: '',
+            category: 'business_financial',
+            priority: 'medium',
+            status: 'to_read',
+            notes: ''
+          })
+          setShowAddForm(false)
+        }
+      } catch (error) {
+        console.error('Error adding book:', error)
       }
-      const updatedBooks = [...books, book]
-      setBooks(updatedBooks)
-      localStorage.setItem('userBooks', JSON.stringify(updatedBooks))
-      setNewBook({
-        title: '',
-        author: '',
-        category: 'business_financial',
-        priority: 'medium',
-        status: 'to_read',
-        notes: ''
-      })
-      setShowAddForm(false)
     }
   }
 
-  const updateBookStatus = (bookId, newStatus) => {
-    const updatedBooks = books.map(book => 
-      book.id === bookId ? { ...book, status: newStatus, completedAt: newStatus === 'completed' ? new Date().toISOString() : null } : book
-    )
-    setBooks(updatedBooks)
-    localStorage.setItem('userBooks', JSON.stringify(updatedBooks))
+  const updateBookStatus = async (bookId, newStatus) => {
+    try {
+      const updatedBook = await updateBook(bookId, { status: newStatus })
+      if (updatedBook) {
+        setBooks(prev => prev.map(book => 
+          book.id === bookId ? updatedBook : book
+        ))
+      }
+    } catch (error) {
+      console.error('Error updating book status:', error)
+    }
+  }
+
+  const handleDeleteBook = async (bookId) => {
+    try {
+      const success = await deleteBook(bookId)
+      if (success) {
+        setBooks(prev => prev.filter(book => book.id !== bookId))
+      }
+    } catch (error) {
+      console.error('Error deleting book:', error)
+    }
   }
 
   const getPriorityColor = (priority) => {
@@ -303,7 +338,7 @@ export default function BookList({ userProfile, cosmicData }) {
           />
           <div className="flex gap-2 mt-4">
             <button
-              onClick={addBook}
+              onClick={handleAddBook}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
               Add Book
@@ -329,7 +364,7 @@ export default function BookList({ userProfile, cosmicData }) {
             </h3>
             <div className="space-y-3">
               {readingBooks.map(book => (
-                <BookItem key={book.id} book={book} categories={categories} onStatusChange={updateBookStatus} />
+                <BookItem key={book.id} book={book} categories={categories} onStatusChange={updateBookStatus} onDelete={handleDeleteBook} />
               ))}
             </div>
           </div>
@@ -344,7 +379,7 @@ export default function BookList({ userProfile, cosmicData }) {
             </h3>
             <div className="space-y-3">
               {toReadBooks.map(book => (
-                <BookItem key={book.id} book={book} categories={categories} onStatusChange={updateBookStatus} />
+                <BookItem key={book.id} book={book} categories={categories} onStatusChange={updateBookStatus} onDelete={handleDeleteBook} />
               ))}
             </div>
           </div>
@@ -359,7 +394,7 @@ export default function BookList({ userProfile, cosmicData }) {
             </h3>
             <div className="space-y-3">
               {completedBooks.map(book => (
-                <BookItem key={book.id} book={book} categories={categories} onStatusChange={updateBookStatus} />
+                <BookItem key={book.id} book={book} categories={categories} onStatusChange={updateBookStatus} onDelete={handleDeleteBook} />
               ))}
             </div>
           </div>
@@ -369,7 +404,7 @@ export default function BookList({ userProfile, cosmicData }) {
   )
 }
 
-function BookItem({ book, categories, onStatusChange }) {
+function BookItem({ book, categories, onStatusChange, onDelete }) {
   const CategoryIcon = categories[book.category]?.icon || BookOpen
 
   return (
@@ -421,6 +456,12 @@ function BookItem({ book, categories, onStatusChange }) {
           <option value="reading">Reading</option>
           <option value="completed">Completed</option>
         </select>
+        <button
+          onClick={() => onDelete(book.id)}
+          className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700 transition-colors"
+        >
+          Delete
+        </button>
       </div>
     </div>
   )
