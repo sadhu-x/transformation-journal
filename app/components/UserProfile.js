@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { User, Settings, X, Save, MapPin } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { getUserProfile, updateUserProfile, generateInstructionTemplate } from '../../lib/dataService'
+import { debugPlanetPosition } from '../../lib/accurateNatalChart.js'
 
 export default function UserProfile({ user, onSignOut }) {
   const [showSettings, setShowSettings] = useState(false)
@@ -193,6 +194,34 @@ export default function UserProfile({ user, onSignOut }) {
     alert('AI prompt with natal chart data has been downloaded!')
   }
 
+  const debugMoonPosition = () => {
+    if (!userConfig.birthDate || !userConfig.birthTime || !userConfig.birthLatitude || !userConfig.birthLongitude) {
+      alert('Please fill in all birth data first')
+      return
+    }
+    
+    try {
+      const moonData = debugPlanetPosition(userConfig.birthDate, userConfig.birthTime, 'moon')
+      console.log('Moon Position Debug:', moonData)
+      
+      const debugInfo = `
+Moon Position Debug:
+Julian Day: ${moonData.julianDay}
+Ayanamsa: ${moonData.ayanamsa.toFixed(6)}°
+Tropical Longitude: ${moonData.tropicalLongitude.toFixed(6)}°
+Nirayana Longitude: ${moonData.nirayanaLongitude.toFixed(6)}°
+Rashi: ${moonData.rashi}
+Degree in Rashi: ${moonData.degreeInRashi.toFixed(2)}°
+Nakshatra: ${moonData.nakshatra}
+      `
+      
+      alert(debugInfo)
+    } catch (error) {
+      console.error('Error debugging moon position:', error)
+      alert('Error calculating moon position')
+    }
+  }
+
   return (
     <>
       <div className="relative">
@@ -364,9 +393,16 @@ export default function UserProfile({ user, onSignOut }) {
                   <button
                     type="button"
                     onClick={generateAIPrompt}
-                    className="w-full px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
+                    className="w-full px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors mb-2"
                   >
                     Generate AI Prompt with Natal Chart
+                  </button>
+                  <button
+                    type="button"
+                    onClick={debugMoonPosition}
+                    className="w-full px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 transition-colors"
+                  >
+                    Debug Moon Position
                   </button>
                 </div>
               </div>
