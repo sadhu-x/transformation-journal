@@ -184,6 +184,11 @@ export async function POST(request) {
         const formattedData = formatProkeralaData(data)
         console.log('Formatted data:', formattedData)
         
+        // Add raw API response to formatted data for storage
+        if (formattedData) {
+          formattedData.raw_response = data
+        }
+        
         // If formatting fails, return raw data for debugging
         if (!formattedData || formattedData.planets.length === 0) {
           console.log('Formatting failed or returned empty data, returning raw response for debugging')
@@ -247,8 +252,37 @@ function formatProkeralaData(data) {
     
     const planets = []
     
-    // Extract planetary data from nakshatra details
-    if (actualData.nakshatra_details) {
+    // Handle divisional_positions format (new format from Prokerala)
+    if (actualData.divisional_positions && Array.isArray(actualData.divisional_positions)) {
+      console.log('Processing divisional_positions format')
+      
+      actualData.divisional_positions.forEach((houseData, houseIndex) => {
+        console.log(`Processing house ${houseIndex + 1}:`, houseData)
+        
+        if (houseData.planet_positions && Array.isArray(houseData.planet_positions)) {
+          houseData.planet_positions.forEach((planetData) => {
+            console.log('Processing planet:', planetData.planet)
+            
+            const planet = {
+              planet: planetData.planet.name || planetData.planet.vedic_name || 'Unknown',
+              rashi: planetData.rasi.name || 'Unknown',
+              degree: parseFloat(planetData.sign_degree) || 0,
+              nakshatra: planetData.nakshatra.name || 'Unknown',
+              house: houseData.house.number || houseIndex + 1,
+              longitude: parseFloat(planetData.longitude) || 0,
+              longitude_dms: planetData.longitude_dms || '0° 0\' 0"',
+              sign_degree_dms: planetData.sign_degree_dms || '0° 0\' 0"'
+            }
+            
+            planets.push(planet)
+            console.log('Added planet:', planet)
+          })
+        }
+      })
+    }
+    
+    // Extract planetary data from nakshatra details (fallback format)
+    if (actualData.nakshatra_details && planets.length === 0) {
       console.log('Processing nakshatra details for planetary data')
       
       // Extract Sun (Soorya) data
@@ -281,8 +315,8 @@ function formatProkeralaData(data) {
       }
     }
     
-    // Prokerala returns data in a specific format
-    if (actualData.planets) {
+    // Prokerala returns data in a specific format (another fallback)
+    if (actualData.planets && planets.length === 0) {
       console.log('Processing planets:', actualData.planets.length)
       actualData.planets.forEach((planet, index) => {
         console.log(`Planet ${index}:`, planet)
@@ -293,7 +327,7 @@ function formatProkeralaData(data) {
           nakshatra: planet.nakshatra || planet.nakshatra_name || 'Unknown'
         })
       })
-    } else if (actualData.planetary_positions) {
+    } else if (actualData.planetary_positions && planets.length === 0) {
       // Alternative format
       console.log('Processing planetary_positions:', actualData.planetary_positions.length)
       actualData.planetary_positions.forEach((planet, index) => {
@@ -305,7 +339,7 @@ function formatProkeralaData(data) {
           nakshatra: planet.nakshatra || planet.nakshatra_name || 'Unknown'
         })
       })
-    } else {
+    } else if (planets.length === 0) {
       console.log('No planets found in response. Available keys:', Object.keys(actualData))
     }
 
@@ -316,22 +350,44 @@ function formatProkeralaData(data) {
       nakshatra: 'Unknown'
     }
 
-    // Try to get ascendant from zodiac data
-    if (actualData.nakshatra_details?.zodiac) {
+    // Try to get ascendant from divisional_positions (new format)
+    if (actualData.divisional_positions && actualData.divisional_positions.length > 0) {
+      const firstHouse = actualData.divisional_positions[0]
+      if (firstHouse.planet_positions && firstHouse.planet_positions.length > 0) {
+        // Look for Ascendant/Lagna in the first house
+        const ascendantPlanet = firstHouse.planet_positions.find(p => 
+          p.planet.name === 'Ascendant' || p.planet.vedic_name === 'Lagna'
+        )
+        if (ascendantPlanet) {
+          console.log('Found ascendant in divisional_positions:', ascendantPlanet)
+          ascendant = {
+            rashi: ascendantPlanet.rasi.name || 'Unknown',
+            degree: parseFloat(ascendantPlanet.sign_degree) || 0,
+            nakshatra: ascendantPlanet.nakshatra.name || 'Unknown',
+            longitude: parseFloat(ascendantPlanet.longitude) || 0,
+            longitude_dms: ascendantPlanet.longitude_dms || '0° 0\' 0"',
+            sign_degree_dms: ascendantPlanet.sign_degree_dms || '0° 0\' 0"'
+          }
+        }
+      }
+    }
+
+    // Try to get ascendant from zodiac data (fallback)
+    if (ascendant.rashi === 'Unknown' && actualData.nakshatra_details?.zodiac) {
       console.log('Processing ascendant from zodiac:', actualData.nakshatra_details.zodiac)
       ascendant = {
         rashi: actualData.nakshatra_details.zodiac.name || 'Unknown',
         degree: 0, // We don't have exact degrees
         nakshatra: actualData.nakshatra_details.nakshatra?.name || 'Unknown'
       }
-    } else if (actualData.ascendant) {
+    } else if (ascendant.rashi === 'Unknown' && actualData.ascendant) {
       console.log('Processing ascendant:', actualData.ascendant)
       ascendant = {
         rashi: actualData.ascendant.sign || actualData.ascendant.rashi || actualData.ascendant.zodiac || 'Unknown',
         degree: parseFloat(actualData.ascendant.degree || actualData.ascendant.longitude || actualData.ascendant.position) || 0,
         nakshatra: actualData.ascendant.nakshatra || actualData.ascendant.nakshatra_name || 'Unknown'
       }
-    } else if (actualData.houses && actualData.houses.length > 0) {
+    } else if (ascendant.rashi === 'Unknown' && actualData.houses && actualData.houses.length > 0) {
       // If no ascendant, use first house
       const firstHouse = actualData.houses[0]
       console.log('Using first house as ascendant:', firstHouse)
@@ -340,7 +396,7 @@ function formatProkeralaData(data) {
         degree: parseFloat(firstHouse.degree || firstHouse.longitude || firstHouse.position) || 0,
         nakshatra: firstHouse.nakshatra || firstHouse.nakshatra_name || 'Unknown'
       }
-    } else if (actualData.lagna) {
+    } else if (ascendant.rashi === 'Unknown' && actualData.lagna) {
       // Alternative ascendant field
       console.log('Processing lagna:', actualData.lagna)
       ascendant = {
@@ -348,17 +404,31 @@ function formatProkeralaData(data) {
         degree: parseFloat(actualData.lagna.degree || actualData.lagna.longitude || actualData.lagna.position) || 0,
         nakshatra: actualData.lagna.nakshatra || actualData.lagna.nakshatra_name || 'Unknown'
       }
-    } else {
+    } else if (ascendant.rashi === 'Unknown') {
       console.log('No ascendant data found. Available keys:', Object.keys(actualData))
     }
 
     console.log('Final ascendant:', ascendant)
     console.log('Final planets count:', planets.length)
 
+    // Generate houses from divisional_positions if available
+    let houses = []
+    if (actualData.divisional_positions && actualData.divisional_positions.length > 0) {
+      houses = actualData.divisional_positions.map((houseData, index) => ({
+        house: index + 1,
+        rashi: houseData.rasi.name || 'Unknown',
+        degree: 0, // We don't have exact house degrees in this format
+        lord: houseData.rasi.lord?.name || houseData.rasi.lord?.vedic_name || 'Unknown'
+      }))
+    } else {
+      // Fallback to generated houses
+      houses = generateHouses(ascendant.degree)
+    }
+
     return {
       ascendant,
       planets,
-      houses: generateHouses(ascendant.degree)
+      houses
     }
   } catch (error) {
     console.error('Error formatting Prokerala data:', error)
