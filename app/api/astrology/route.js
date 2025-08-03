@@ -18,39 +18,11 @@ export async function POST(request) {
     }
 
     if (!PROKERALA_API_KEY) {
-      console.warn('Prokerala API key not found, using fallback data')
-      return NextResponse.json({
-        ascendant: {
-          rashi: 'Libra',
-          degree: 15.5,
-          nakshatra: 'Swati'
-        },
-        planets: [
-          { planet: 'Sun', rashi: 'Pisces', degree: 28.83, nakshatra: 'Revati' },
-          { planet: 'Moon', rashi: 'Capricorn', degree: 2.1, nakshatra: 'Uttara Ashadha' },
-          { planet: 'Mars', rashi: 'Aries', degree: 26.58, nakshatra: 'Bharani' },
-          { planet: 'Mercury', rashi: 'Pisces', degree: 14.05, nakshatra: 'Uttara Bhadrapada' },
-          { planet: 'Jupiter', rashi: 'Capricorn', degree: 19.1, nakshatra: 'Dhanishta' },
-          { planet: 'Venus', rashi: 'Pisces', degree: 15.47, nakshatra: 'Uttara Bhadrapada' },
-          { planet: 'Saturn', rashi: 'Scorpio', degree: 3.43, nakshatra: 'Vishakha' },
-          { planet: 'Rahu', rashi: 'Aries', degree: 26.12, nakshatra: 'Bharani' },
-          { planet: 'Ketu', rashi: 'Libra', degree: 26.12, nakshatra: 'Vishakha' }
-        ],
-        houses: [
-          { house: 1, rashi: 'Libra', degree: 15.5 },
-          { house: 2, rashi: 'Scorpio', degree: 15.5 },
-          { house: 3, rashi: 'Sagittarius', degree: 15.5 },
-          { house: 4, rashi: 'Capricorn', degree: 15.5 },
-          { house: 5, rashi: 'Aquarius', degree: 15.5 },
-          { house: 6, rashi: 'Pisces', degree: 15.5 },
-          { house: 7, rashi: 'Aries', degree: 15.5 },
-          { house: 8, rashi: 'Taurus', degree: 15.5 },
-          { house: 9, rashi: 'Gemini', degree: 15.5 },
-          { house: 10, rashi: 'Cancer', degree: 15.5 },
-          { house: 11, rashi: 'Leo', degree: 15.5 },
-          { house: 12, rashi: 'Virgo', degree: 15.5 }
-        ]
-      })
+      console.warn('Prokerala API key not found')
+      return NextResponse.json(
+        { error: 'Astrology API key not configured. Please set up PROKERALA_API_KEY in your environment variables.' },
+        { status: 503 }
+      )
     }
 
     // Format date and time
@@ -81,53 +53,29 @@ export async function POST(request) {
       if (response.ok) {
         const data = await response.json()
         console.log('Prokerala API response:', data)
+        console.log('API response structure:', JSON.stringify(data, null, 2))
         
         // Format the response
         const formattedData = formatProkeralaData(data)
+        console.log('Formatted data:', formattedData)
         if (formattedData) {
           return NextResponse.json(formattedData)
         }
       } else {
         console.warn('Prokerala API failed:', response.status, response.statusText)
+        const errorText = await response.text()
+        console.warn('API error response:', errorText)
       }
     } catch (apiError) {
       console.warn('Prokerala API error:', apiError)
     }
 
-    // If all endpoints fail, return fallback data
-    console.log('All Prokerala endpoints failed, using fallback data')
-    return NextResponse.json({
-      ascendant: {
-        rashi: 'Libra',
-        degree: 15.5,
-        nakshatra: 'Swati'
-      },
-      planets: [
-        { planet: 'Sun', rashi: 'Pisces', degree: 28.83, nakshatra: 'Revati' },
-        { planet: 'Moon', rashi: 'Capricorn', degree: 2.1, nakshatra: 'Uttara Ashadha' },
-        { planet: 'Mars', rashi: 'Aries', degree: 26.58, nakshatra: 'Bharani' },
-        { planet: 'Mercury', rashi: 'Pisces', degree: 14.05, nakshatra: 'Uttara Bhadrapada' },
-        { planet: 'Jupiter', rashi: 'Capricorn', degree: 19.1, nakshatra: 'Dhanishta' },
-        { planet: 'Venus', rashi: 'Pisces', degree: 15.47, nakshatra: 'Uttara Bhadrapada' },
-        { planet: 'Saturn', rashi: 'Scorpio', degree: 3.43, nakshatra: 'Vishakha' },
-        { planet: 'Rahu', rashi: 'Aries', degree: 26.12, nakshatra: 'Bharani' },
-        { planet: 'Ketu', rashi: 'Libra', degree: 26.12, nakshatra: 'Vishakha' }
-      ],
-      houses: [
-        { house: 1, rashi: 'Libra', degree: 15.5 },
-        { house: 2, rashi: 'Scorpio', degree: 15.5 },
-        { house: 3, rashi: 'Sagittarius', degree: 15.5 },
-        { house: 4, rashi: 'Capricorn', degree: 15.5 },
-        { house: 5, rashi: 'Aquarius', degree: 15.5 },
-        { house: 6, rashi: 'Pisces', degree: 15.5 },
-        { house: 7, rashi: 'Aries', degree: 15.5 },
-        { house: 8, rashi: 'Taurus', degree: 15.5 },
-        { house: 9, rashi: 'Gemini', degree: 15.5 },
-        { house: 10, rashi: 'Cancer', degree: 15.5 },
-        { house: 11, rashi: 'Leo', degree: 15.5 },
-        { house: 12, rashi: 'Virgo', degree: 15.5 }
-      ]
-    })
+    // If all endpoints fail, return error
+    console.log('All Prokerala endpoints failed')
+    return NextResponse.json(
+      { error: 'Unable to fetch astrology data. Please check your API configuration and try again.' },
+      { status: 503 }
+    )
 
   } catch (error) {
     console.error('Astrology API error:', error)
@@ -140,16 +88,32 @@ export async function POST(request) {
 
 function formatProkeralaData(data) {
   try {
+    console.log('Formatting Prokerala data, input structure:', Object.keys(data))
+    
     const planets = []
     
     // Prokerala returns data in a specific format
     if (data.planets) {
-      data.planets.forEach(planet => {
+      console.log('Processing planets:', data.planets.length)
+      data.planets.forEach((planet, index) => {
+        console.log(`Planet ${index}:`, planet)
         planets.push({
-          planet: planet.name || planet.planet,
-          rashi: planet.sign || planet.rashi,
-          degree: parseFloat(planet.degree || planet.longitude) || 0,
-          nakshatra: planet.nakshatra || 'Unknown'
+          planet: planet.name || planet.planet || planet.planet_name,
+          rashi: planet.sign || planet.rashi || planet.zodiac,
+          degree: parseFloat(planet.degree || planet.longitude || planet.position) || 0,
+          nakshatra: planet.nakshatra || planet.nakshatra_name || 'Unknown'
+        })
+      })
+    } else if (data.planetary_positions) {
+      // Alternative format
+      console.log('Processing planetary_positions:', data.planetary_positions.length)
+      data.planetary_positions.forEach((planet, index) => {
+        console.log(`Planet ${index}:`, planet)
+        planets.push({
+          planet: planet.name || planet.planet || planet.planet_name,
+          rashi: planet.sign || planet.rashi || planet.zodiac,
+          degree: parseFloat(planet.degree || planet.longitude || planet.position) || 0,
+          nakshatra: planet.nakshatra || planet.nakshatra_name || 'Unknown'
         })
       })
     }
@@ -162,20 +126,33 @@ function formatProkeralaData(data) {
     }
 
     if (data.ascendant) {
+      console.log('Processing ascendant:', data.ascendant)
       ascendant = {
-        rashi: data.ascendant.sign || data.ascendant.rashi || 'Unknown',
-        degree: parseFloat(data.ascendant.degree || data.ascendant.longitude) || 0,
-        nakshatra: data.ascendant.nakshatra || 'Unknown'
+        rashi: data.ascendant.sign || data.ascendant.rashi || data.ascendant.zodiac || 'Unknown',
+        degree: parseFloat(data.ascendant.degree || data.ascendant.longitude || data.ascendant.position) || 0,
+        nakshatra: data.ascendant.nakshatra || data.ascendant.nakshatra_name || 'Unknown'
       }
     } else if (data.houses && data.houses.length > 0) {
       // If no ascendant, use first house
       const firstHouse = data.houses[0]
+      console.log('Using first house as ascendant:', firstHouse)
       ascendant = {
-        rashi: firstHouse.sign || firstHouse.rashi || 'Unknown',
-        degree: parseFloat(firstHouse.degree || firstHouse.longitude) || 0,
-        nakshatra: firstHouse.nakshatra || 'Unknown'
+        rashi: firstHouse.sign || firstHouse.rashi || firstHouse.zodiac || 'Unknown',
+        degree: parseFloat(firstHouse.degree || firstHouse.longitude || firstHouse.position) || 0,
+        nakshatra: firstHouse.nakshatra || firstHouse.nakshatra_name || 'Unknown'
+      }
+    } else if (data.lagna) {
+      // Alternative ascendant field
+      console.log('Processing lagna:', data.lagna)
+      ascendant = {
+        rashi: data.lagna.sign || data.lagna.rashi || data.lagna.zodiac || 'Unknown',
+        degree: parseFloat(data.lagna.degree || data.lagna.longitude || data.lagna.position) || 0,
+        nakshatra: data.lagna.nakshatra || data.lagna.nakshatra_name || 'Unknown'
       }
     }
+
+    console.log('Final ascendant:', ascendant)
+    console.log('Final planets count:', planets.length)
 
     return {
       ascendant,

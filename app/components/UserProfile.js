@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react'
 import { User, Settings, X, Save, MapPin } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
-import { getUserProfile, updateUserProfile, generateInstructionTemplate, fetchAndStoreBirthChart } from '../../lib/dataService'
+import { getUserProfile, updateUserProfile, generateInstructionTemplate, fetchAndStoreBirthChart, debugBirthChartData } from '../../lib/dataService'
+import { debugBirthData } from '../../lib/astrologyAPI'
 
 export default function UserProfile({ user, onSignOut }) {
   const [showSettings, setShowSettings] = useState(false)
@@ -239,11 +240,22 @@ export default function UserProfile({ user, onSignOut }) {
     }
   }
 
+  const handleDebugBirthChartData = async () => {
+    try {
+      await debugBirthChartData()
+    } catch (error) {
+      console.error('Error debugging birth chart data:', error)
+    }
+  }
+
   const handleFetchBirthChart = async () => {
     if (!userConfig.birthDate || !userConfig.birthTime || !userConfig.birthLatitude || !userConfig.birthLongitude) {
       alert('Please fill in all birth data fields before fetching your natal chart.')
       return
     }
+
+    // Debug the birth data
+    debugBirthData(userConfig.birthDate, userConfig.birthTime, userConfig.birthLatitude, userConfig.birthLongitude)
 
     setBirthChartStatus({
       status: 'loading',
@@ -483,7 +495,10 @@ export default function UserProfile({ user, onSignOut }) {
                     {birthChartStatus.status === 'idle' && (
                       <div className="text-center">
                         <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                          Your natal chart data will be calculated and stored for future use.
+                          Your natal chart data will be calculated using professional Vedic astrology APIs.
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-500 mb-3">
+                          Note: An astrology API key is required for accurate calculations.
                         </p>
                         <button
                           type="button"
@@ -564,6 +579,9 @@ export default function UserProfile({ user, onSignOut }) {
                         <p className="text-sm text-red-600 dark:text-red-400">
                           {birthChartStatus.message}
                         </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                          Please ensure you have a valid astrology API key configured.
+                        </p>
                         <button
                           type="button"
                           onClick={handleFetchBirthChart}
@@ -591,6 +609,19 @@ export default function UserProfile({ user, onSignOut }) {
                       className="w-full px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
                     >
                       Generate AI Prompt with Natal Chart
+                    </button>
+                  </div>
+
+                  <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-900/20 rounded-md">
+                    <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">
+                      <strong>Debug:</strong> Check what birth chart data is stored in the database.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleDebugBirthChartData}
+                      className="w-full px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
+                    >
+                      Debug Birth Chart Data
                     </button>
                   </div>
                 </>
