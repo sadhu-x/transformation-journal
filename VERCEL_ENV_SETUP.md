@@ -1,155 +1,132 @@
 # Vercel Environment Variables Setup
 
-Setting up your Prokerala API key in Vercel for secure, production-ready deployment.
+This guide explains how to set up environment variables in Vercel for the Transformation Journal application.
 
-## 🎯 **Why Use Vercel Environment Variables?**
+## Required Environment Variables
 
-- **Security**: API keys are not exposed in your code
-- **Environment-specific**: Different keys for development vs production
-- **Easy management**: Update keys without redeploying code
-- **Best practice**: Industry standard for API key management
+### 1. Supabase Configuration
+- **Name**: `NEXT_PUBLIC_SUPABASE_URL`
+- **Value**: `https://your-project-id.supabase.co`
+- **Description**: Your Supabase project URL
 
-## 📝 **Setup Steps**
+- **Name**: `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- **Value**: `your_supabase_anon_key_here`
+- **Description**: Your Supabase anonymous/public key
 
-### **1. Get Your Prokerala API Key**
-1. Visit: https://prokerala.com/astrology/api/
-2. Sign up and get your free API key
-3. Copy the key (you'll need it for the next step)
+### 2. Prokerala Astrology API
+- **Name**: `PROKERALA_CLIENT_ID`
+- **Value**: `your_prokerala_client_id_here`
+- **Description**: Your Prokerala API client ID (obtained from https://api.prokerala.com/)
 
-### **2. Add Environment Variable in Vercel**
+- **Name**: `PROKERALA_CLIENT_SECRET`
+- **Value**: `your_prokerala_client_secret_here`
+- **Description**: Your Prokerala API client secret (obtained from https://api.prokerala.com/)
 
-#### **Option A: Vercel Dashboard (Recommended)**
-1. Go to your Vercel dashboard: https://vercel.com/dashboard
-2. Select your `transformation-journal` project
-3. Go to **Settings** tab
-4. Click **Environment Variables** in the left sidebar
-5. Click **Add New**
-6. Fill in:
-   - **Name**: `PROKERALA_API_KEY`
-   - **Value**: `your_prokerala_api_key_here`
-   - **Environment**: Select all environments (Production, Preview, Development)
-7. Click **Save**
+## Setting Up Environment Variables in Vercel
 
-#### **Option B: Vercel CLI**
-```bash
-# Install Vercel CLI if you haven't
-npm i -g vercel
+### Method 1: Using Vercel CLI
 
-# Login to Vercel
-vercel login
+1. Install Vercel CLI if you haven't already:
+   ```bash
+   npm i -g vercel
+   ```
 
-# Add environment variable
-vercel env add PROKERALA_API_KEY
+2. Login to Vercel:
+   ```bash
+   vercel login
+   ```
 
-# Follow the prompts to set the value and environments
+3. Add environment variables:
+   ```bash
+   vercel env add NEXT_PUBLIC_SUPABASE_URL
+   vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY
+   vercel env add PROKERALA_CLIENT_ID
+   vercel env add PROKERALA_CLIENT_SECRET
+   ```
+
+4. Deploy to apply changes:
+   ```bash
+   vercel --prod
+   ```
+
+### Method 2: Using Vercel Dashboard
+
+1. Go to your Vercel project dashboard
+2. Navigate to **Settings** → **Environment Variables**
+3. Add each variable:
+   - `NEXT_PUBLIC_SUPABASE_URL` - Your Supabase project URL
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Your Supabase anonymous key
+   - `PROKERALA_CLIENT_ID` - Your Prokerala client ID
+   - `PROKERALA_CLIENT_SECRET` - Your Prokerala client secret
+
+4. Set the environment for each variable:
+   - **Production**: ✅
+   - **Preview**: ✅ (optional)
+   - **Development**: ✅ (optional)
+
+5. Click **Save** and redeploy your application
+
+## Local Development Setup
+
+Create a `.env.local` file in your project root:
+
+```env
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+
+# Prokerala API Configuration
+PROKERALA_CLIENT_ID=your_prokerala_client_id_here
+PROKERALA_CLIENT_SECRET=your_prokerala_client_secret_here
 ```
 
-### **3. Redeploy Your App**
-After adding the environment variable:
-1. **Automatic**: Vercel will automatically redeploy
-2. **Manual**: Or trigger a new deployment from your dashboard
-3. **Git push**: Or push new code to trigger deployment
-
-## 🔧 **Environment Variable Names**
-
-The app looks for these environment variables:
-- `PROKERALA_API_KEY` - Your Prokerala API key (primary)
-- `VEDIC_RISHI_API_KEY` - Vedic Rishi API key (backup)
-
-## 🌍 **Environment-Specific Setup**
-
-You can set different values for different environments:
-
-### **Development (Local)**
-- Use `.env.local` file in your project root
-- Only for local development
-- Never commit this file to Git
-
-### **Production (Vercel)**
-- Use Vercel dashboard environment variables
-- Available to your deployed app
-- Secure and encrypted
-
-### **Preview (Vercel)**
-- Same as production
-- Used for pull request previews
-
-## 🧪 **Testing the Setup**
-
-### **Local Testing**
-1. Create `.env.local` file:
-   ```
-   PROKERALA_API_KEY=your_key_here
-   ```
-2. Restart your development server
-3. Test with "Test API Calculation" button
-
-### **Production Testing**
-1. Deploy to Vercel with environment variable set
-2. Test the live app
-3. Check Vercel function logs for API calls
-
-## 🔒 **Security Best Practices**
-
-### **Do's:**
-- ✅ Use Vercel environment variables for production
-- ✅ Use `.env.local` for local development
-- ✅ Add `.env.local` to `.gitignore`
-- ✅ Use different keys for different environments
-
-### **Don'ts:**
-- ❌ Never commit API keys to Git
-- ❌ Don't hardcode keys in your code
-- ❌ Don't share API keys publicly
-- ❌ Don't use the same key for development and production
-
-## 📊 **Verification Steps**
+## Verification Steps
 
 1. **Check Vercel Dashboard**:
    - Go to your project settings
-   - Verify `PROKERALA_API_KEY` is listed
-   - Check that it's enabled for all environments
+   - Verify all environment variables are listed
+   - Ensure they're enabled for the correct environments
 
-2. **Test Local Development**:
-   - Restart your dev server
-   - Use "Test API Calculation" button
-   - Check console for API responses
+2. **Test API Integration**:
+   - Try calculating a birth chart in the app
+   - Check browser console for any authentication errors
+   - Verify Supabase connection works
 
-3. **Test Production**:
-   - Deploy to Vercel
-   - Test the live app
-   - Verify API calls work
+3. **Check Deployment Logs**:
+   - Monitor Vercel deployment logs for any environment variable errors
+   - Look for successful API authentication messages
 
-## 🚀 **Deployment Workflow**
+## Troubleshooting
 
-1. **Development**: Use `.env.local` for local testing
-2. **Staging**: Use Vercel preview deployments
-3. **Production**: Use Vercel production environment variables
+### Common Issues
 
-## 🔧 **Troubleshooting**
+1. **"Environment variable not found"**:
+   - Ensure variable names match exactly (case-sensitive)
+   - Check that variables are enabled for the correct environment
+   - Redeploy after adding new variables
 
-### **API Key Not Working**
-- Check Vercel dashboard for correct variable name
-- Verify the key is enabled for the right environment
-- Check Vercel function logs for errors
+2. **"Authentication failed"**:
+   - Verify Prokerala credentials are correct
+   - Check that client ID and secret are properly formatted
+   - Ensure credentials haven't expired
 
-### **Local vs Production Differences**
-- Ensure both environments have the API key
-- Check that the key is valid and not expired
-- Verify rate limits haven't been exceeded
+3. **"Supabase connection failed"**:
+   - Verify Supabase URL and key are correct
+   - Check that your Supabase project is active
+   - Ensure RLS policies are properly configured
 
-### **Environment Variable Not Found**
-- Double-check the variable name spelling
-- Ensure it's enabled for the deployment environment
-- Redeploy after adding the variable
+### Getting Prokerala Credentials
 
-## 🎉 **Success Indicators**
+1. Visit https://api.prokerala.com/
+2. Sign up for a free account
+3. Navigate to your dashboard
+4. Create a new application
+5. Copy the `client_id` and `client_secret`
+6. Add them to your Vercel environment variables
 
-When everything is working correctly:
-- ✅ Local development uses `.env.local`
-- ✅ Production uses Vercel environment variables
-- ✅ API calls work in both environments
-- ✅ No API keys visible in your code
-- ✅ Secure and production-ready setup
+## Security Notes
 
-Your app is now ready for secure, production deployment with professional Vedic astrology calculations! 🌟 
+- Never commit `.env.local` files to version control
+- Use different credentials for development and production
+- Regularly rotate your API keys and secrets
+- Monitor API usage to stay within free tier limits 

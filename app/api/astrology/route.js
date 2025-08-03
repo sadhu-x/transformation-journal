@@ -4,7 +4,60 @@
 import { NextResponse } from 'next/server'
 
 const PROKERALA_API_URL = 'https://api.prokerala.com/v2/astrology'
-const PROKERALA_API_KEY = process.env.PROKERALA_API_KEY
+const PROKERALA_CLIENT_ID = process.env.PROKERALA_CLIENT_ID
+const PROKERALA_CLIENT_SECRET = process.env.PROKERALA_CLIENT_SECRET
+
+// Cache for access token
+let accessToken = null
+let tokenExpiry = null
+
+async function getAccessToken() {
+  // Check if we have a valid cached token
+  if (accessToken && tokenExpiry && new Date() < tokenExpiry) {
+    console.log('Using cached access token')
+    return accessToken
+  }
+
+  console.log('Getting new access token...')
+  console.log('Client ID available:', !!PROKERALA_CLIENT_ID)
+  console.log('Client Secret available:', !!PROKERALA_CLIENT_SECRET)
+
+  if (!PROKERALA_CLIENT_ID || !PROKERALA_CLIENT_SECRET) {
+    throw new Error('Prokerala credentials not configured')
+  }
+
+  try {
+    const tokenResponse = await fetch('https://api.prokerala.com/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        grant_type: 'client_credentials',
+        client_id: PROKERALA_CLIENT_ID,
+        client_secret: PROKERALA_CLIENT_SECRET
+      })
+    })
+
+    if (!tokenResponse.ok) {
+      const errorText = await tokenResponse.text()
+      console.error('Token request failed:', tokenResponse.status, errorText)
+      throw new Error(`Failed to get access token: ${tokenResponse.status}`)
+    }
+
+    const tokenData = await tokenResponse.json()
+    console.log('Access token obtained successfully')
+    
+    // Cache the token with expiry
+    accessToken = tokenData.access_token
+    tokenExpiry = new Date(Date.now() + (tokenData.expires_in - 60) * 1000) // Expire 1 minute early
+    
+    return accessToken
+  } catch (error) {
+    console.error('Error getting access token:', error)
+    throw error
+  }
+}
 
 export async function POST(request) {
   try {
@@ -12,9 +65,6 @@ export async function POST(request) {
 
     console.log('=== Astrology API Request ===')
     console.log('Birth data:', { birthDate, birthTime, latitude, longitude })
-    console.log('API Key available:', !!PROKERALA_API_KEY)
-    console.log('API Key length:', PROKERALA_API_KEY ? PROKERALA_API_KEY.length : 0)
-    console.log('API Key starts with:', PROKERALA_API_KEY ? PROKERALA_API_KEY.substring(0, 10) + '...' : 'N/A')
 
     if (!birthDate || !birthTime || !latitude || !longitude) {
       return NextResponse.json(
@@ -23,10 +73,22 @@ export async function POST(request) {
       )
     }
 
-    if (!PROKERALA_API_KEY) {
-      console.warn('Prokerala API key not found')
+    if (!PROKERALA_CLIENT_ID || !PROKERALA_CLIENT_SECRET) {
+      console.warn('Prokerala credentials not found')
       return NextResponse.json(
-        { error: 'Astrology API key not configured. Please set up PROKERALA_API_KEY in your environment variables.' },
+        { error: 'Astrology API credentials not configured. Please set up PROKERALA_CLIENT_ID and PROKERALA_CLIENT_SECRET in your environment variables.' },
+        { status: 503 }
+      )
+    }
+
+    // Get access token
+    let token
+    try {
+      token = await getAccessToken()
+    } catch (tokenError) {
+      console.error('Failed to get access token:', tokenError)
+      return NextResponse.json(
+        { error: 'Failed to authenticate with astrology API. Please check your credentials.' },
         { status: 503 }
       )
     }
@@ -43,17 +105,12 @@ export async function POST(request) {
     try {
       console.log('Calling Prokerala planetary positions endpoint')
       console.log('API URL:', `${PROKERALA_API_URL}/planetary-positions`)
-      console.log('Request payload:', {
-        ayanamsa: 1, // Lahiri ayanamsa
-        coordinates: `${latitude},${longitude}`,
-        datetime: `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}T${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:00`
-      })
       
       const response = await fetch(`${PROKERALA_API_URL}/planetary-positions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${PROKERALA_API_KEY}`
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           ayanamsa: 1, // Lahiri ayanamsa
@@ -69,7 +126,7 @@ export async function POST(request) {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${PROKERALA_API_KEY}`
+            'Authorization': `Bearer ${token}`
           },
           body: JSON.stringify({
             ayanamsa: 1,

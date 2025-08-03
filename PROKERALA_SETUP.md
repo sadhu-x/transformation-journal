@@ -1,83 +1,184 @@
 # Prokerala API Setup Guide
 
-Since you chose Prokerala, here's how to set it up for professional Vedic astrology calculations.
+This guide explains how to set up the Prokerala Vedic Astrology API for the Transformation Journal application.
 
-## 🎯 **Why Prokerala?**
+## Overview
 
-- **Swiss Ephemeris based** - Gold standard for astronomical accuracy
-- **100 free requests per day** - Plenty for personal use
-- **Complete Vedic calculations** - Planetary positions, nakshatras, houses
-- **Reliable and fast** - Professional API service
+Prokerala provides a comprehensive Vedic astrology API that we use for:
+- Natal chart calculations
+- Planetary positions
+- Ascendant (Lagna) calculations
+- House positions
 
-## 📝 **Setup Steps**
+## Getting Started
 
-### 1. **Get Your Free API Key**
-1. Visit: https://prokerala.com/astrology/api/
-2. Click "Get Started" or "Sign Up"
-3. Create a free account with your email
-4. Go to your dashboard
-5. Copy your API key
+### 1. Create Prokerala Account
 
-### 2. **Add API Key to Your App**
-1. Create or edit `.env.local` file in your project root
-2. Add this line:
-   ```
-   PROKERALA_API_KEY=your_api_key_here
-   ```
-3. Replace `your_api_key_here` with your actual API key
+1. Visit [Prokerala API](https://api.prokerala.com/)
+2. Sign up for a free account
+3. Verify your email address
 
-### 3. **Restart Your App**
-- Stop your development server (`Ctrl+C`)
-- Start it again (`npm run dev`)
-- The app will now use Prokerala API
+### 2. Create Application
 
-## 🧪 **Test the Setup**
+1. Log into your Prokerala dashboard
+2. Navigate to "Applications" or "API Keys"
+3. Click "Create New Application"
+4. Fill in the application details:
+   - **Name**: `Transformation Journal`
+   - **Description**: `Vedic astrology calculations for personal transformation journal`
+   - **Website**: Your app's URL (optional)
 
-1. **Go to Profile Settings** → Birth Data tab
-2. **Fill in your birth data** (date, time, location)
-3. **Click "Test API Calculation"** button
-4. **Check the console** for API response
-5. **Compare results** with your known chart
+### 3. Get Credentials
 
-## 📊 **What You'll Get**
+After creating the application, you'll receive:
+- **Client ID**: A unique identifier for your application
+- **Client Secret**: A secret key for authentication
 
-Prokerala provides:
-- **Planetary Positions**: Sun, Moon, Mars, Mercury, Jupiter, Venus, Saturn, Rahu, Ketu
-- **Nakshatras**: Lunar mansions for each planet
-- **Ascendant**: Your rising sign and degree
-- **Houses**: All 12 houses with signs and degrees
-- **Ayanamsa**: Lahiri (most commonly used in Vedic astrology)
+**Important**: Keep these credentials secure and never share them publicly.
 
-## 🔧 **Troubleshooting**
+## Authentication Flow
 
-### **API Key Issues**
-- Make sure the key is correct
-- Check that `.env.local` is in the project root
-- Restart the development server after adding the key
+Prokerala uses OAuth 2.0 client credentials flow:
 
-### **Rate Limits**
-- 100 requests per day (free tier)
-- If you hit the limit, the app will fall back to your known chart data
-- Consider upgrading to paid plan if you need more requests
+1. **Get Access Token**: Use your client ID and secret to obtain an access token
+2. **Use Access Token**: Include the token in API requests as a Bearer token
+3. **Token Expiry**: Access tokens are valid for 1 hour
 
-### **Data Accuracy**
-- Prokerala uses Swiss Ephemeris (most accurate)
-- Should match your known chart very closely
-- If there are discrepancies, check your birth time accuracy
+### Example Authentication Request
 
-## 🎉 **Success Indicators**
+```bash
+curl -X POST https://api.prokerala.com/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=client_credentials&client_id=YOUR_CLIENT_ID&client_secret=YOUR_CLIENT_SECRET"
+```
 
-When Prokerala is working correctly, you'll see:
-- Console message: "Successfully got data from Prokerala"
-- Accurate planetary positions matching your known chart
-- Complete nakshatra information
-- Professional-grade calculations
+### Example API Request
 
-## 🚀 **Next Steps**
+```bash
+curl -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  https://api.prokerala.com/v2/astrology/planetary-positions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "ayanamsa": 1,
+    "coordinates": "23.1765,75.7885",
+    "datetime": "2025-01-15T06:30:00"
+  }'
+```
 
-1. **Test the API** with your birth data
-2. **Generate AI prompts** with accurate natal chart data
-3. **Use for daily cosmic context** in your journal entries
-4. **Enjoy professional Vedic astrology accuracy** without any cost!
+## Environment Variables
 
-The Prokerala API will give you the most accurate Vedic astrology calculations available! 🌟 
+Add these to your environment variables:
+
+```env
+PROKERALA_CLIENT_ID=your_client_id_here
+PROKERALA_CLIENT_SECRET=your_client_secret_here
+```
+
+## API Endpoints We Use
+
+### 1. Planetary Positions
+- **Endpoint**: `/v2/astrology/planetary-positions`
+- **Method**: POST
+- **Purpose**: Get planetary positions at birth time
+
+### 2. Natal Chart
+- **Endpoint**: `/v2/astrology/natal-chart`
+- **Method**: POST
+- **Purpose**: Get complete natal chart data
+
+## Request Parameters
+
+### Required Parameters
+- `ayanamsa`: Ayanamsa system (1 = Lahiri)
+- `coordinates`: Latitude,longitude (e.g., "23.1765,75.7885")
+- `datetime`: Birth date and time in ISO format
+
+### Example Request Body
+```json
+{
+  "ayanamsa": 1,
+  "coordinates": "23.1765,75.7885",
+  "datetime": "2025-01-15T06:30:00"
+}
+```
+
+## Response Format
+
+The API returns detailed astrological data including:
+- Planetary positions and signs
+- Ascendant (Lagna) information
+- House positions
+- Nakshatra details
+
+## Rate Limits
+
+- **Free Tier**: 100 requests per day
+- **Paid Plans**: Higher limits available
+- **Rate Limiting**: Requests are throttled if limits exceeded
+
+## Error Handling
+
+Common error responses:
+- `401`: Invalid credentials
+- `429`: Rate limit exceeded
+- `503`: Service unavailable
+
+## Testing
+
+### Test Your Setup
+
+1. Use the "Calculate Natal Chart" button in the app
+2. Check browser console for authentication logs
+3. Verify successful API responses
+
+### Debug Information
+
+The app logs detailed information:
+- Authentication status
+- API request details
+- Response data structure
+- Error messages
+
+## Troubleshooting
+
+### Common Issues
+
+1. **"Invalid credentials"**:
+   - Verify client ID and secret are correct
+   - Check that credentials haven't expired
+   - Ensure proper formatting
+
+2. **"Rate limit exceeded"**:
+   - Check your daily request count
+   - Wait for rate limit reset
+   - Consider upgrading to paid plan
+
+3. **"Service unavailable"**:
+   - Check Prokerala service status
+   - Verify API endpoints are correct
+   - Try again later
+
+### Getting Help
+
+- **Documentation**: [Prokerala API Docs](https://api.prokerala.com/docs)
+- **Support**: Contact Prokerala support for API issues
+- **Community**: Check their community forums
+
+## Security Best Practices
+
+1. **Never expose credentials** in client-side code
+2. **Use environment variables** for all sensitive data
+3. **Rotate credentials** regularly
+4. **Monitor API usage** to stay within limits
+5. **Implement proper error handling** for failed requests
+
+## Integration Notes
+
+The Transformation Journal app:
+- Handles authentication automatically
+- Caches access tokens for efficiency
+- Provides fallback error handling
+- Logs detailed debugging information
+- Stores birth chart data in Supabase for reuse
+
+Your Prokerala API is now ready to provide accurate Vedic astrology calculations! 🌟 
