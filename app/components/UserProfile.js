@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { User, Settings, X, Save, MapPin } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
-import { getUserProfile, updateUserProfile, generateInstructionTemplate, fetchAndStoreBirthChart, debugBirthChartData } from '../../lib/dataService'
+import { getUserProfile, updateUserProfile, generateInstructionTemplate, fetchAndStoreBirthChart, forceRecalculateBirthChart, debugBirthChartData } from '../../lib/dataService'
 import { debugBirthData } from '../../lib/astrologyAPI'
 
 export default function UserProfile({ user, onSignOut }) {
@@ -299,6 +299,51 @@ export default function UserProfile({ user, onSignOut }) {
     }
   }
 
+  const handleForceRecalculateBirthChart = async () => {
+    if (!userConfig.birthDate || !userConfig.birthTime || !userConfig.birthLatitude || !userConfig.birthLongitude) {
+      alert('Please fill in all birth data fields before recalculating your natal chart.')
+      return
+    }
+
+    // Debug the birth data
+    debugBirthData(userConfig.birthDate, userConfig.birthTime, userConfig.birthLatitude, userConfig.birthLongitude)
+
+    setBirthChartStatus({
+      status: 'loading',
+      message: 'Force recalculating your natal chart...',
+      lastCalculated: null
+    })
+
+    try {
+      const result = await forceRecalculateBirthChart(
+        userConfig.birthDate,
+        userConfig.birthTime,
+        userConfig.birthLatitude,
+        userConfig.birthLongitude
+      )
+
+      if (result.success) {
+        setBirthChartStatus({
+          status: 'success',
+          message: 'Natal chart recalculated and stored successfully',
+          lastCalculated: result.data.calculated_at
+        })
+      } else {
+        setBirthChartStatus({
+          status: 'error',
+          message: result.error || 'Failed to recalculate natal chart',
+          lastCalculated: null
+        })
+      }
+    } catch (error) {
+      console.error('Error force recalculating birth chart:', error)
+      setBirthChartStatus({
+        status: 'error',
+        message: 'Error recalculating natal chart. Please try again.',
+        lastCalculated: null
+      })
+    }
+  }
 
 
   return (
@@ -559,13 +604,22 @@ export default function UserProfile({ user, onSignOut }) {
                             Last calculated: {new Date(birthChartStatus.lastCalculated).toLocaleString()}
                           </p>
                         )}
-                        <button
-                          type="button"
-                          onClick={handleFetchBirthChart}
-                          className="mt-2 px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-                        >
-                          Recalculate
-                        </button>
+                        <div className="mt-2 space-x-2">
+                          <button
+                            type="button"
+                            onClick={handleFetchBirthChart}
+                            className="px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                          >
+                            Recalculate
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleForceRecalculateBirthChart}
+                            className="px-3 py-1 text-xs bg-orange-500 text-white rounded hover:bg-orange-600 transition-colors"
+                          >
+                            Force Recalculate
+                          </button>
+                        </div>
                       </div>
                     )}
                     
