@@ -120,29 +120,19 @@ export async function POST(request) {
     console.log('Query parameters:', params.toString())
     console.log('Decoded datetime from params:', params.get('datetime'))
 
-    // Try Prokerala kundli endpoint (POST method with JSON body)
+    // Try Prokerala kundli endpoint (GET method with query parameters)
     try {
-      console.log('Calling Prokerala kundli endpoint with POST')
-      const url = `${PROKERALA_API_URL}/kundli`
+      console.log('Calling Prokerala kundli endpoint with GET')
+      const url = `${PROKERALA_API_URL}/kundli?${params.toString()}`
       console.log('API URL:', url)
-      console.log('Request body:', {
-        ayanamsa: 1,
-        coordinates: `${latitude},${longitude}`,
-        datetime: isoDateTime
-      })
+      console.log('Query parameters:', params.toString())
       
       const response = await fetch(url, {
-        method: 'POST',
+        method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
           'Accept': 'application/json'
-        },
-        body: JSON.stringify({
-          ayanamsa: 1,
-          coordinates: `${latitude},${longitude}`,
-          datetime: isoDateTime
-        })
+        }
       })
 
       console.log('Response status:', response.status)
