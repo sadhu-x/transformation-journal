@@ -120,19 +120,33 @@ export async function POST(request) {
     console.log('Query parameters:', params.toString())
     console.log('Decoded datetime from params:', params.get('datetime'))
 
-    // Try Prokerala kundli endpoint (GET method with query parameters)
+    // Try Prokerala kundli endpoint (POST method with JSON body)
     try {
-      console.log('Calling Prokerala kundli endpoint')
-      const url = `${PROKERALA_API_URL}/kundli?${params.toString()}`
+      console.log('Calling Prokerala kundli endpoint with POST')
+      const url = `${PROKERALA_API_URL}/kundli`
       console.log('API URL:', url)
+      console.log('Request body:', {
+        ayanamsa: 1,
+        coordinates: `${latitude},${longitude}`,
+        datetime: isoDateTime
+      })
       
       const response = await fetch(url, {
-        method: 'GET',
+        method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
           'Accept': 'application/json'
-        }
+        },
+        body: JSON.stringify({
+          ayanamsa: 1,
+          coordinates: `${latitude},${longitude}`,
+          datetime: isoDateTime
+        })
       })
+
+      console.log('Response status:', response.status)
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()))
 
       // Also try the birth details endpoint as a fallback
       if (!response.ok) {
