@@ -140,8 +140,12 @@ export default function BookList({ userProfile, cosmicData }) {
   const handleAddBook = async () => {
     if (newBook.title && newBook.author) {
       try {
+        console.log('Adding book to Supabase:', newBook)
         const addedBook = await addBook(newBook)
+        console.log('addBook result:', addedBook)
+        
         if (addedBook) {
+          console.log('Book added successfully, updating state')
           setBooks(prev => [addedBook, ...prev])
           setNewBook({
             title: '',
@@ -152,6 +156,8 @@ export default function BookList({ userProfile, cosmicData }) {
             notes: ''
           })
           setShowAddForm(false)
+        } else {
+          console.log('addBook returned null/undefined')
         }
       } catch (error) {
         console.error('Error adding book:', error)
