@@ -120,10 +120,10 @@ export async function POST(request) {
     console.log('Query parameters:', params.toString())
     console.log('Decoded datetime from params:', params.get('datetime'))
 
-    // Try Prokerala birth details endpoint (GET method with query parameters)
+    // Try Prokerala kundli endpoint (GET method with query parameters)
     try {
-      console.log('Calling Prokerala birth details endpoint')
-      const url = `${PROKERALA_API_URL}/birth-details?${params.toString()}`
+      console.log('Calling Prokerala kundli endpoint')
+      const url = `${PROKERALA_API_URL}/kundli?${params.toString()}`
       console.log('API URL:', url)
       
       const response = await fetch(url, {
@@ -134,11 +134,11 @@ export async function POST(request) {
         }
       })
 
-      // Also try the planetary positions endpoint as a fallback
+      // Also try the birth details endpoint as a fallback
       if (!response.ok) {
-        console.log('Trying Prokerala planetary positions endpoint as fallback...')
-        const planetaryUrl = `${PROKERALA_API_URL}/planetary-positions?${params.toString()}`
-        const planetaryResponse = await fetch(planetaryUrl, {
+        console.log('Trying Prokerala birth details endpoint as fallback...')
+        const birthDetailsUrl = `${PROKERALA_API_URL}/birth-details?${params.toString()}`
+        const birthDetailsResponse = await fetch(birthDetailsUrl, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -146,17 +146,17 @@ export async function POST(request) {
           }
         })
 
-        if (planetaryResponse.ok) {
-          const planetaryData = await planetaryResponse.json()
-          console.log('✅ Planetary positions API response:', planetaryData)
-          const formattedData = formatProkeralaData(planetaryData)
+        if (birthDetailsResponse.ok) {
+          const birthDetailsData = await birthDetailsResponse.json()
+          console.log('✅ Birth details API response:', birthDetailsData)
+          const formattedData = formatProkeralaData(birthDetailsData)
           if (formattedData) {
             return NextResponse.json(formattedData)
           }
         } else {
-          console.warn('❌ Planetary positions API also failed:', planetaryResponse.status, planetaryResponse.statusText)
-          const errorText = await planetaryResponse.text()
-          console.warn('❌ Planetary API error response:', errorText)
+          console.warn('❌ Birth details API also failed:', birthDetailsResponse.status, birthDetailsResponse.statusText)
+          const errorText = await birthDetailsResponse.text()
+          console.warn('❌ Birth details API error response:', errorText)
         }
       }
 
