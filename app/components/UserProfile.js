@@ -9,6 +9,7 @@ import { debugSimplePlanetPosition, calculateCorrectAyanamsa } from '../../lib/s
 export default function UserProfile({ user, onSignOut }) {
   const [showSettings, setShowSettings] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [activeTab, setActiveTab] = useState(0)
   const [userConfig, setUserConfig] = useState({
     primaryGoals: '',
     keyPractices: '',
@@ -310,177 +311,209 @@ Difference: ${ayanamsaCheck.difference.toFixed(6)}°
               </button>
             </div>
 
+            {/* Tab Navigation */}
+            <div className="flex border-b border-gray-200 dark:border-gray-600 mb-4">
+              <button
+                onClick={() => setActiveTab(0)}
+                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === 0
+                    ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                }`}
+              >
+                Goals & Practices
+              </button>
+              <button
+                onClick={() => setActiveTab(1)}
+                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === 1
+                    ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                }`}
+              >
+                Birth Data
+              </button>
+            </div>
+
+            {/* Tab Content */}
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Primary Goals
-                </label>
-                <textarea
-                  value={userConfig.primaryGoals}
-                  onChange={(e) => handleInputChange('primaryGoals', e.target.value)}
-                  placeholder="e.g., Living my best life, optimizing trading performance, spiritual growth"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                  rows="2"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Key Practices
-                </label>
-                <textarea
-                  value={userConfig.keyPractices}
-                  onChange={(e) => handleInputChange('keyPractices', e.target.value)}
-                  placeholder="e.g., Daily meditation, breathwork, qigong, trading, FileMaker development"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                  rows="2"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Current Focus
-                </label>
-                <textarea
-                  value={userConfig.currentFocus}
-                  onChange={(e) => handleInputChange('currentFocus', e.target.value)}
-                  placeholder="e.g., Building system adherence in trading, deepening spiritual practices"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                  rows="2"
-                />
-              </div>
-
-              {/* Birth Data Section */}
-              <div className="pt-4 border-t border-gray-200 dark:border-gray-600">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
-                  Birth Data (for Vedic Astrology)
-                </h3>
-                
-                <div className="grid grid-cols-2 gap-4">
+              {/* Tab 0: Goals & Practices */}
+              {activeTab === 0 && (
+                <>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Birth Date
+                      Primary Goals
                     </label>
-                    <input
-                      type="date"
-                      value={userConfig.birthDate}
-                      onChange={(e) => handleInputChange('birthDate', e.target.value)}
+                    <textarea
+                      value={userConfig.primaryGoals}
+                      onChange={(e) => handleInputChange('primaryGoals', e.target.value)}
+                      placeholder="e.g., Living my best life, optimizing trading performance, spiritual growth"
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                      rows="2"
                     />
                   </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Key Practices
+                    </label>
+                    <textarea
+                      value={userConfig.keyPractices}
+                      onChange={(e) => handleInputChange('keyPractices', e.target.value)}
+                      placeholder="e.g., Daily meditation, breathwork, qigong, trading, FileMaker development"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                      rows="2"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Current Focus
+                    </label>
+                    <textarea
+                      value={userConfig.currentFocus}
+                      onChange={(e) => handleInputChange('currentFocus', e.target.value)}
+                      placeholder="e.g., Building system adherence in trading, deepening spiritual practices"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                      rows="2"
+                    />
+                  </div>
+                </>
+              )}
+
+              {/* Tab 1: Birth Data */}
+              {activeTab === 1 && (
+                <>
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                    Birth Data
+                  </h3>
                   
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Birth Time
-                    </label>
-                    <input
-                      type="time"
-                      value={userConfig.birthTime}
-                      onChange={(e) => handleInputChange('birthTime', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                    />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Birth Date
+                      </label>
+                      <input
+                        type="date"
+                        value={userConfig.birthDate}
+                        onChange={(e) => handleInputChange('birthDate', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Birth Time
+                      </label>
+                      <input
+                        type="time"
+                        value={userConfig.birthTime}
+                        onChange={(e) => handleInputChange('birthTime', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                      />
+                    </div>
                   </div>
-                </div>
 
-                <div className="mt-4">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Birth Location
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={userConfig.birthLocation}
-                      onChange={(e) => handleInputChange('birthLocation', e.target.value)}
-                      placeholder="e.g., New York, NY, USA"
-                      className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                    />
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Birth Location
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={userConfig.birthLocation}
+                        onChange={(e) => handleInputChange('birthLocation', e.target.value)}
+                        placeholder="e.g., New York, NY, USA"
+                        className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleGeocodeLocation}
+                        className="px-3 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors flex items-center gap-1"
+                        title="Find coordinates for this location"
+                      >
+                        <MapPin className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 mt-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Latitude
+                      </label>
+                      <input
+                        type="number"
+                        step="0.000001"
+                        value={userConfig.birthLatitude}
+                        onChange={(e) => handleInputChange('birthLatitude', e.target.value)}
+                        placeholder="e.g., 40.7128"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Longitude
+                      </label>
+                      <input
+                        type="number"
+                        step="0.000001"
+                        value={userConfig.birthLongitude}
+                        onChange={(e) => handleInputChange('birthLongitude', e.target.value)}
+                        placeholder="e.g., -74.0060"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-md">
+                    <p className="text-sm text-blue-700 dark:text-blue-300">
+                      <strong>Note:</strong> Birth data is used to calculate your natal chart and provide personalized Vedic astrology insights, including dosha analysis, planetary influences, and cosmic timing recommendations.
+                    </p>
+                  </div>
+
+                  <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-md">
+                    <p className="text-sm text-green-700 dark:text-green-300 mb-3">
+                      <strong>AI Integration:</strong> Generate a personalized AI prompt with your natal chart data for enhanced Vedic astrology analysis.
+                    </p>
                     <button
                       type="button"
-                      onClick={handleGeocodeLocation}
-                      className="px-3 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors flex items-center gap-1"
-                      title="Find coordinates for this location"
+                      onClick={generateAIPrompt}
+                      className="w-full px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors mb-2"
                     >
-                      <MapPin className="h-4 w-4" />
+                      Generate AI Prompt with Natal Chart
+                    </button>
+                    <button
+                      type="button"
+                      onClick={debugMoonPosition}
+                      className="w-full px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 transition-colors mb-2"
+                    >
+                      Debug Moon Position
+                    </button>
+                    <button
+                      type="button"
+                      onClick={debugAllPlanets}
+                      className="w-full px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors"
+                    >
+                      Debug All Planets
                     </button>
                   </div>
-                </div>
+                </>
+              )}
+            </div>
 
-                <div className="grid grid-cols-2 gap-4 mt-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Latitude
-                    </label>
-                    <input
-                      type="number"
-                      step="0.000001"
-                      value={userConfig.birthLatitude}
-                      onChange={(e) => handleInputChange('birthLatitude', e.target.value)}
-                      placeholder="e.g., 40.7128"
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Longitude
-                    </label>
-                    <input
-                      type="number"
-                      step="0.000001"
-                      value={userConfig.birthLongitude}
-                      onChange={(e) => handleInputChange('birthLongitude', e.target.value)}
-                      placeholder="e.g., -74.0060"
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                    />
-                  </div>
-                </div>
-
-                <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-md">
-                  <p className="text-sm text-blue-700 dark:text-blue-300">
-                    <strong>Note:</strong> Birth data is used to calculate your natal chart and provide personalized Vedic astrology insights, including dosha analysis, planetary influences, and cosmic timing recommendations.
-                  </p>
-                </div>
-
-                <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-md">
-                  <p className="text-sm text-green-700 dark:text-green-300 mb-3">
-                    <strong>AI Integration:</strong> Generate a personalized AI prompt with your natal chart data for enhanced Vedic astrology analysis.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={generateAIPrompt}
-                    className="w-full px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors mb-2"
-                  >
-                    Generate AI Prompt with Natal Chart
-                  </button>
-                  <button
-                    type="button"
-                    onClick={debugMoonPosition}
-                    className="w-full px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 transition-colors mb-2"
-                  >
-                    Debug Moon Position
-                  </button>
-                  <button
-                    type="button"
-                    onClick={debugAllPlanets}
-                    className="w-full px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors"
-                  >
-                    Debug All Planets
-                  </button>
-                </div>
-              </div>
-
-              <div className="pt-4 border-t border-gray-200 dark:border-gray-600">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    {user?.email}
-                  </span>
-                  <button
-                    onClick={handleSignOut}
-                    className="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
-                  >
-                    Sign Out
-                  </button>
-                </div>
+            <div className="pt-4 border-t border-gray-200 dark:border-gray-600">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400">
+                  {user?.email}
+                </span>
+                <button
+                  onClick={handleSignOut}
+                  className="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                >
+                  Sign Out
+                </button>
               </div>
             </div>
 
