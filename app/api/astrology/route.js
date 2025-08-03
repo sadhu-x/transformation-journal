@@ -61,47 +61,37 @@ export async function POST(request) {
     const hour = dateTime.getHours()
     const minute = dateTime.getMinutes()
 
-    // Try different Prokerala endpoints
-    const endpoints = [
-      '/planets',
-      '/planetary-positions',
-      '/birth-details',
-      '/kundli'
-    ]
-
-    for (const endpoint of endpoints) {
-      try {
-        console.log(`Trying Prokerala endpoint: ${endpoint}`)
-        
-        const response = await fetch(`${PROKERALA_API_URL}${endpoint}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${PROKERALA_API_KEY}`
-          },
-          body: JSON.stringify({
-            ayanamsa: 1, // Lahiri ayanamsa
-            coordinates: `${latitude},${longitude}`,
-            datetime: `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}T${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:00`
-          })
+    // Try Prokerala planetary positions endpoint
+    try {
+      console.log('Calling Prokerala planetary positions endpoint')
+      
+      const response = await fetch(`${PROKERALA_API_URL}/planetary-positions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${PROKERALA_API_KEY}`
+        },
+        body: JSON.stringify({
+          ayanamsa: 1, // Lahiri ayanamsa
+          coordinates: `${latitude},${longitude}`,
+          datetime: `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}T${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:00`
         })
+      })
 
-        if (response.ok) {
-          const data = await response.json()
-          console.log(`Prokerala API response from ${endpoint}:`, data)
-          
-          // Format the response
-          const formattedData = formatProkeralaData(data)
-          if (formattedData) {
-            return NextResponse.json(formattedData)
-          }
-        } else {
-          console.warn(`Prokerala endpoint ${endpoint} failed:`, response.status, response.statusText)
+      if (response.ok) {
+        const data = await response.json()
+        console.log('Prokerala API response:', data)
+        
+        // Format the response
+        const formattedData = formatProkeralaData(data)
+        if (formattedData) {
+          return NextResponse.json(formattedData)
         }
-      } catch (endpointError) {
-        console.warn(`Prokerala endpoint ${endpoint} error:`, endpointError)
-        continue
+      } else {
+        console.warn('Prokerala API failed:', response.status, response.statusText)
       }
+    } catch (apiError) {
+      console.warn('Prokerala API error:', apiError)
     }
 
     // If all endpoints fail, return fallback data

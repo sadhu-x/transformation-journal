@@ -4,8 +4,6 @@ import { useState, useEffect } from 'react'
 import { User, Settings, X, Save, MapPin } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { getUserProfile, updateUserProfile, generateInstructionTemplate } from '../../lib/dataService'
-import { debugSimplePlanetPosition, calculateCorrectAyanamsa } from '../../lib/simpleNatalChart.js'
-import { debugAPICalculation } from '../../lib/astrologyAPI.js'
 
 export default function UserProfile({ user, onSignOut }) {
   const [showSettings, setShowSettings] = useState(false)
@@ -201,121 +199,7 @@ export default function UserProfile({ user, onSignOut }) {
     }
   }
 
-  const debugMoonPosition = () => {
-    if (!userConfig.birthDate || !userConfig.birthTime || !userConfig.birthLatitude || !userConfig.birthLongitude) {
-      alert('Please fill in all birth data first')
-      return
-    }
-    
-    try {
-      const moonData = debugSimplePlanetPosition(userConfig.birthDate, userConfig.birthTime, 'moon')
-      console.log('Moon Position Debug:', moonData)
-      
-      // Calculate correct ayanamsa based on your known chart
-      // Your moon should be in Capricorn at 02:06° (nirayana longitude ~272°)
-      const ayanamsaCheck = calculateCorrectAyanamsa(
-        userConfig.birthDate, 
-        userConfig.birthTime, 
-        moonData.tropicalLongitude, 
-        272.1 // Capricorn 02:06° = 272.1°
-      )
-      
-      const debugInfo = `
-Moon Position Debug:
-Julian Day: ${moonData.julianDay}
-Current Ayanamsa: ${moonData.ayanamsa.toFixed(6)}°
-Tropical Longitude: ${moonData.tropicalLongitude.toFixed(6)}°
-Nirayana Longitude: ${moonData.nirayanaLongitude.toFixed(6)}°
-Rashi: ${moonData.rashi}
-Degree in Rashi: ${moonData.degreeInRashi.toFixed(2)}°
-Nakshatra: ${moonData.nakshatra}
 
-Ayanamsa Analysis:
-Required Ayanamsa: ${ayanamsaCheck.calculatedAyanamsa.toFixed(6)}°
-Difference: ${ayanamsaCheck.difference.toFixed(6)}°
-      `
-      
-      alert(debugInfo)
-    } catch (error) {
-      console.error('Error debugging moon position:', error)
-      alert('Error calculating moon position')
-    }
-  }
-
-  const debugAllPlanets = () => {
-    if (!userConfig.birthDate || !userConfig.birthTime || !userConfig.birthLatitude || !userConfig.birthLongitude) {
-      alert('Please fill in all birth data first')
-      return
-    }
-    
-    try {
-      const planets = ['sun', 'moon', 'mars', 'mercury', 'jupiter', 'venus', 'saturn', 'rahu', 'ketu']
-      const knownPositions = {
-        sun: { sign: 'Pisces', degree: 28.83, nirayana: 298.83 },
-        moon: { sign: 'Capricorn', degree: 2.1, nirayana: 272.1 },
-        mars: { sign: 'Aries', degree: 26.58, nirayana: 26.58 },
-        mercury: { sign: 'Pisces', degree: 14.05, nirayana: 284.05 },
-        jupiter: { sign: 'Capricorn', degree: 19.1, nirayana: 289.1 },
-        venus: { sign: 'Pisces', degree: 15.47, nirayana: 285.47 },
-        saturn: { sign: 'Scorpio', degree: 3.43, nirayana: 213.43 },
-        rahu: { sign: 'Aries', degree: 26.12, nirayana: 26.12 },
-        ketu: { sign: 'Libra', degree: 26.12, nirayana: 206.12 }
-      }
-      
-      let debugInfo = 'Planetary Position Comparison:\n\n'
-      
-      planets.forEach(planet => {
-        const calculated = debugSimplePlanetPosition(userConfig.birthDate, userConfig.birthTime, planet)
-        const known = knownPositions[planet]
-        const difference = Math.abs(calculated.nirayanaLongitude - known.nirayana)
-        
-        debugInfo += `${planet.toUpperCase()}:\n`
-        debugInfo += `  Calculated: ${calculated.rashi} ${calculated.degreeInRashi.toFixed(2)}° (${calculated.nirayanaLongitude.toFixed(2)}°)\n`
-        debugInfo += `  Known: ${known.sign} ${known.degree.toFixed(2)}° (${known.nirayana.toFixed(2)}°)\n`
-        debugInfo += `  Difference: ${difference.toFixed(2)}°\n`
-        debugInfo += `  Match: ${calculated.rashi === known.sign ? '✅' : '❌'}\n\n`
-      })
-      
-      console.log('All Planets Debug:', debugInfo)
-      alert(debugInfo)
-    } catch (error) {
-      console.error('Error debugging all planets:', error)
-      alert('Error calculating planetary positions')
-    }
-  }
-
-  const debugAPI = async () => {
-    if (!userConfig.birthDate || !userConfig.birthTime || !userConfig.birthLatitude || !userConfig.birthLongitude) {
-      alert('Please fill in all birth data first')
-      return
-    }
-    
-    try {
-      const result = await debugAPICalculation(
-        userConfig.birthDate, 
-        userConfig.birthTime, 
-        userConfig.birthLatitude, 
-        userConfig.birthLongitude
-      )
-      
-      if (result) {
-        let debugInfo = 'API Natal Chart Data:\n\n'
-        debugInfo += `Ascendant: ${result.ascendant?.rashi} ${result.ascendant?.degree}° - ${result.ascendant?.nakshatra}\n\n`
-        debugInfo += 'Planets:\n'
-        result.planets?.forEach(planet => {
-          debugInfo += `  ${planet.planet}: ${planet.rashi} ${planet.degree}° - ${planet.nakshatra}\n`
-        })
-        
-        console.log('API Debug Result:', result)
-        alert(debugInfo)
-      } else {
-        alert('API returned no data. Check console for details.')
-      }
-    } catch (error) {
-      console.error('Error debugging API:', error)
-      alert('Error testing API. Check console for details.')
-    }
-  }
 
   return (
     <>
@@ -519,30 +403,9 @@ Difference: ${ayanamsaCheck.difference.toFixed(6)}°
                     <button
                       type="button"
                       onClick={generateAIPrompt}
-                      className="w-full px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors mb-2"
+                      className="w-full px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
                     >
                       Generate AI Prompt with Natal Chart
-                    </button>
-                    <button
-                      type="button"
-                      onClick={debugMoonPosition}
-                      className="w-full px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 transition-colors mb-2"
-                    >
-                      Debug Moon Position
-                    </button>
-                    <button
-                      type="button"
-                      onClick={debugAllPlanets}
-                      className="w-full px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors mb-2"
-                    >
-                      Debug All Planets
-                    </button>
-                    <button
-                      type="button"
-                      onClick={debugAPI}
-                      className="w-full px-4 py-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 transition-colors"
-                    >
-                      Test API Calculation
                     </button>
                   </div>
                 </>
