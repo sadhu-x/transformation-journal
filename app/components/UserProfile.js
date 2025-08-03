@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { User, Settings, X, Save, MapPin } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { getUserProfile, updateUserProfile, generateInstructionTemplate } from '../../lib/dataService'
-import { debugPlanetPosition } from '../../lib/accurateNatalChart.js'
+import { debugSimplePlanetPosition } from '../../lib/simpleNatalChart.js'
 
 export default function UserProfile({ user, onSignOut }) {
   const [showSettings, setShowSettings] = useState(false)
@@ -201,7 +201,7 @@ export default function UserProfile({ user, onSignOut }) {
     }
     
     try {
-      const moonData = debugPlanetPosition(userConfig.birthDate, userConfig.birthTime, 'moon')
+      const moonData = debugSimplePlanetPosition(userConfig.birthDate, userConfig.birthTime, 'moon')
       console.log('Moon Position Debug:', moonData)
       
       const debugInfo = `
