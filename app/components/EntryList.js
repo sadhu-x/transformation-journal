@@ -60,7 +60,7 @@ export default function EntryList({ entries, onDeleteEntry, onEditEntry, title, 
       
       // Get user configuration for personalized instructions
       const userConfig = JSON.parse(localStorage.getItem('user-config') || '{}')
-      const instructions = generateInstructionTemplate(userConfig)
+      const instructions = await generateInstructionTemplate(userConfig)
       
       // Get current non-negotiables for context
       const nonNegotiables = JSON.parse(localStorage.getItem('transformation-non-negotiables') || '[]')

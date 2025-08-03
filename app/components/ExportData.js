@@ -33,7 +33,7 @@ export default function ExportDropdown({ entries }) {
           userConfig: userConfig,
           note: 'Fallback export - some data may be missing'
         },
-        instructions: generateInstructionTemplate(userConfig),
+        instructions: await generateInstructionTemplate(userConfig),
         data: entries
       }
       const dataStr = JSON.stringify(fallbackPackage, null, 2)

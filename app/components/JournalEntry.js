@@ -511,7 +511,7 @@ export default function JournalEntry({ onAddEntry, onOpenImageModal, imageCommen
       }
       
       console.log('Final user config for copy:', userConfig)
-      const instructions = generateInstructionTemplate(userConfig)
+      const instructions = await generateInstructionTemplate(userConfig)
       console.log('Generated instructions:', instructions.substring(0, 200) + '...')
       
       const contextTemplate = `${instructions}
