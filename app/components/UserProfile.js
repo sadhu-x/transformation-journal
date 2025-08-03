@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { User, Settings, X, Save, MapPin } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { getUserProfile, updateUserProfile, generateInstructionTemplate } from '../../lib/dataService'
-import { debugSimplePlanetPosition } from '../../lib/simpleNatalChart.js'
+import { debugSimplePlanetPosition, calculateCorrectAyanamsa } from '../../lib/simpleNatalChart.js'
 
 export default function UserProfile({ user, onSignOut }) {
   const [showSettings, setShowSettings] = useState(false)
@@ -204,15 +204,28 @@ export default function UserProfile({ user, onSignOut }) {
       const moonData = debugSimplePlanetPosition(userConfig.birthDate, userConfig.birthTime, 'moon')
       console.log('Moon Position Debug:', moonData)
       
+      // Calculate correct ayanamsa based on your known chart
+      // Your moon should be in Capricorn at 02:06° (nirayana longitude ~272°)
+      const ayanamsaCheck = calculateCorrectAyanamsa(
+        userConfig.birthDate, 
+        userConfig.birthTime, 
+        moonData.tropicalLongitude, 
+        272.1 // Capricorn 02:06° = 272.1°
+      )
+      
       const debugInfo = `
 Moon Position Debug:
 Julian Day: ${moonData.julianDay}
-Ayanamsa: ${moonData.ayanamsa.toFixed(6)}°
+Current Ayanamsa: ${moonData.ayanamsa.toFixed(6)}°
 Tropical Longitude: ${moonData.tropicalLongitude.toFixed(6)}°
 Nirayana Longitude: ${moonData.nirayanaLongitude.toFixed(6)}°
 Rashi: ${moonData.rashi}
 Degree in Rashi: ${moonData.degreeInRashi.toFixed(2)}°
 Nakshatra: ${moonData.nakshatra}
+
+Ayanamsa Analysis:
+Required Ayanamsa: ${ayanamsaCheck.calculatedAyanamsa.toFixed(6)}°
+Difference: ${ayanamsaCheck.difference.toFixed(6)}°
       `
       
       alert(debugInfo)
