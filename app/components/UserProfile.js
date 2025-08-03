@@ -235,6 +235,48 @@ Difference: ${ayanamsaCheck.difference.toFixed(6)}°
     }
   }
 
+  const debugAllPlanets = () => {
+    if (!userConfig.birthDate || !userConfig.birthTime || !userConfig.birthLatitude || !userConfig.birthLongitude) {
+      alert('Please fill in all birth data first')
+      return
+    }
+    
+    try {
+      const planets = ['sun', 'moon', 'mars', 'mercury', 'jupiter', 'venus', 'saturn', 'rahu', 'ketu']
+      const knownPositions = {
+        sun: { sign: 'Pisces', degree: 28.83, nirayana: 298.83 },
+        moon: { sign: 'Capricorn', degree: 2.1, nirayana: 272.1 },
+        mars: { sign: 'Aries', degree: 26.58, nirayana: 26.58 },
+        mercury: { sign: 'Pisces', degree: 14.05, nirayana: 284.05 },
+        jupiter: { sign: 'Capricorn', degree: 19.1, nirayana: 289.1 },
+        venus: { sign: 'Pisces', degree: 15.47, nirayana: 285.47 },
+        saturn: { sign: 'Scorpio', degree: 3.43, nirayana: 213.43 },
+        rahu: { sign: 'Aries', degree: 26.12, nirayana: 26.12 },
+        ketu: { sign: 'Libra', degree: 26.12, nirayana: 206.12 }
+      }
+      
+      let debugInfo = 'Planetary Position Comparison:\n\n'
+      
+      planets.forEach(planet => {
+        const calculated = debugSimplePlanetPosition(userConfig.birthDate, userConfig.birthTime, planet)
+        const known = knownPositions[planet]
+        const difference = Math.abs(calculated.nirayanaLongitude - known.nirayana)
+        
+        debugInfo += `${planet.toUpperCase()}:\n`
+        debugInfo += `  Calculated: ${calculated.rashi} ${calculated.degreeInRashi.toFixed(2)}° (${calculated.nirayanaLongitude.toFixed(2)}°)\n`
+        debugInfo += `  Known: ${known.sign} ${known.degree.toFixed(2)}° (${known.nirayana.toFixed(2)}°)\n`
+        debugInfo += `  Difference: ${difference.toFixed(2)}°\n`
+        debugInfo += `  Match: ${calculated.rashi === known.sign ? '✅' : '❌'}\n\n`
+      })
+      
+      console.log('All Planets Debug:', debugInfo)
+      alert(debugInfo)
+    } catch (error) {
+      console.error('Error debugging all planets:', error)
+      alert('Error calculating planetary positions')
+    }
+  }
+
   return (
     <>
       <div className="relative">
@@ -413,9 +455,16 @@ Difference: ${ayanamsaCheck.difference.toFixed(6)}°
                   <button
                     type="button"
                     onClick={debugMoonPosition}
-                    className="w-full px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 transition-colors"
+                    className="w-full px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 transition-colors mb-2"
                   >
                     Debug Moon Position
+                  </button>
+                  <button
+                    type="button"
+                    onClick={debugAllPlanets}
+                    className="w-full px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors"
+                  >
+                    Debug All Planets
                   </button>
                 </div>
               </div>
