@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import { BookOpen, Plus, CheckCircle, Clock, Target, TrendingUp, Heart, Brain, DollarSign, Zap } from 'lucide-react'
-import { getPersonalizedRecommendations, getPersonalizedReadingSchedule, getCategoryBalanceRecommendations, getCosmicReadingRecommendations } from '../../lib/bookDatabase'
-import { getBooks, addBook, updateBook, deleteBook } from '../../lib/dataService'
 
 export default function BookList({ userProfile, cosmicData }) {
   const [books, setBooks] = useState([])
@@ -41,153 +39,64 @@ export default function BookList({ userProfile, cosmicData }) {
     }
   }
 
+  // Simplified useEffect - just load from localStorage for now
   useEffect(() => {
-    const loadBooks = async () => {
-      setLoading(true)
-      setError(null)
-      
-      // Add timeout to prevent infinite loading
-      const timeoutId = setTimeout(() => {
-        setLoading(false)
-        setError('Loading timeout. Please refresh the page.')
-      }, 10000) // 10 second timeout
-      
-      try {
-        console.log('Loading books...')
-        
-        // Load user's existing books from Supabase or localStorage fallback
-        const existingBooks = await getBooks()
-        console.log('Existing books loaded:', existingBooks?.length || 0)
-        
-        clearTimeout(timeoutId) // Clear timeout on success
-        
-        if (existingBooks && existingBooks.length > 0) {
-          setBooks(existingBooks)
-          setLoading(false)
-          return
-        }
-        
-        // Only initialize with recommendations if no existing books
-        console.log('No existing books found, initializing with recommendations...')
-        
-        // Safely get personalized recommendations
-        let initialBooks = []
-        try {
-          const safeUserProfile = userProfile || {}
-          initialBooks = getPersonalizedRecommendations(safeUserProfile) || []
-          console.log('Initial books generated:', initialBooks.length)
-        } catch (recError) {
-          console.error('Error generating recommendations:', recError)
-          // Fallback to empty array
-          initialBooks = []
-        }
-        
-        // Add initial books to database only if we have some
-        if (initialBooks.length > 0) {
-          const addedBooks = []
-          for (const book of initialBooks) {
-            try {
-              const addedBook = await addBook(book)
-              if (addedBook) {
-                addedBooks.push(addedBook)
-              }
-            } catch (addError) {
-              console.error('Error adding initial book:', addError)
-              // Continue with other books even if one fails
-            }
-          }
-          setBooks(addedBooks)
-        } else {
-          setBooks([])
-        }
-        
-      } catch (error) {
-        console.error('Error loading books:', error)
-        setError('Failed to load books. Please try refreshing the page.')
+    console.log('BookList component mounting...')
+    
+    try {
+      // Simple localStorage check
+      const savedBooks = localStorage.getItem('userBooks')
+      if (savedBooks) {
+        const parsedBooks = JSON.parse(savedBooks)
+        console.log('Loaded books from localStorage:', parsedBooks.length)
+        setBooks(parsedBooks)
+      } else {
+        console.log('No saved books found, starting with empty list')
         setBooks([])
-      } finally {
-        clearTimeout(timeoutId) // Clear timeout in finally block
-        setLoading(false)
       }
-    }
-
-    loadBooks()
-  }, [userProfile])
-
-  const getReadingSchedule = () => {
-    try {
-      const safeUserProfile = userProfile || {}
-      return getPersonalizedReadingSchedule(safeUserProfile)
     } catch (error) {
-      console.error('Error getting reading schedule:', error)
-      return null
+      console.error('Error loading books:', error)
+      setError('Failed to load books')
+      setBooks([])
+    } finally {
+      setLoading(false)
     }
-  }
+  }, [])
 
-  const getCategoryBalance = () => {
-    try {
-      const safeUserProfile = userProfile || {}
-      return getCategoryBalanceRecommendations(safeUserProfile, books)
-    } catch (error) {
-      console.error('Error getting category balance:', error)
-      return []
-    }
-  }
-
-  const getCosmicRecommendations = () => {
-    try {
-      const safeUserProfile = userProfile || {}
-      return getCosmicReadingRecommendations(safeUserProfile, cosmicData)
-    } catch (error) {
-      console.error('Error getting cosmic recommendations:', error)
-      return null
-    }
-  }
-
-  const handleAddBook = async () => {
+  const handleAddBook = () => {
     if (newBook.title && newBook.author) {
-      try {
-        const addedBook = await addBook(newBook)
-        if (addedBook) {
-          setBooks(prev => [addedBook, ...prev])
-          setNewBook({
-            title: '',
-            author: '',
-            category: 'business_financial',
-            priority: 'medium',
-            status: 'to_read',
-            notes: ''
-          })
-          setShowAddForm(false)
-        }
-      } catch (error) {
-        console.error('Error adding book:', error)
+      const book = {
+        ...newBook,
+        id: Date.now(),
+        addedAt: new Date().toISOString()
       }
+      const updatedBooks = [...books, book]
+      setBooks(updatedBooks)
+      localStorage.setItem('userBooks', JSON.stringify(updatedBooks))
+      setNewBook({
+        title: '',
+        author: '',
+        category: 'business_financial',
+        priority: 'medium',
+        status: 'to_read',
+        notes: ''
+      })
+      setShowAddForm(false)
     }
   }
 
-  const updateBookStatus = async (bookId, newStatus) => {
-    try {
-      const updatedBook = await updateBook(bookId, { status: newStatus })
-      if (updatedBook) {
-        setBooks(prev => prev.map(book => 
-          book.id === bookId ? updatedBook : book
-        ))
-      }
-    } catch (error) {
-      console.error('Error updating book status:', error)
-    }
+  const updateBookStatus = (bookId, newStatus) => {
+    const updatedBooks = books.map(book => 
+      book.id === bookId ? { ...book, status: newStatus, completedAt: newStatus === 'completed' ? new Date().toISOString() : null } : book
+    )
+    setBooks(updatedBooks)
+    localStorage.setItem('userBooks', JSON.stringify(updatedBooks))
   }
 
-  const handleDeleteBook = async (bookId) => {
-    try {
-      const success = await deleteBook(bookId)
-      if (success) {
-        setBooks(prev => prev.filter(book => book.id !== bookId))
-      }
-    } catch (error) {
-      console.error('Error deleting book:', error)
-    }
+  const handleDeleteBook = (bookId) => {
+    const updatedBooks = books.filter(book => book.id !== bookId)
+    setBooks(updatedBooks)
+    localStorage.setItem('userBooks', JSON.stringify(updatedBooks))
   }
 
   const getPriorityColor = (priority) => {
@@ -213,9 +122,7 @@ export default function BookList({ userProfile, cosmicData }) {
   const readingBooks = books.filter(book => book.status === 'reading')
   const toReadBooks = books.filter(book => book.status === 'to_read')
 
-  const readingSchedule = getReadingSchedule()
-  const categoryRecommendations = getCategoryBalance()
-  const cosmicRecommendations = getCosmicRecommendations()
+  console.log('BookList rendering with:', { books: books.length, loading, error })
 
   return (
     <div className="space-y-6">
@@ -268,9 +175,7 @@ export default function BookList({ userProfile, cosmicData }) {
                   <Target className="w-5 h-5 text-blue-600" />
                   <span className="text-sm font-medium text-blue-600">Goal</span>
                 </div>
-                <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
-                  {userProfile?.readingGoal || 50}
-                </p>
+                <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">50</p>
               </div>
               <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
                 <div className="flex items-center gap-2">
@@ -290,69 +195,16 @@ export default function BookList({ userProfile, cosmicData }) {
                   {readingBooks.length}
                 </p>
               </div>
-              <div className="bg-gray-50 dark:bg-gray-900/20 rounded-lg p-4">
+              <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4">
                 <div className="flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-gray-600" />
-                  <span className="text-sm font-medium text-gray-600">To Read</span>
+                  <Clock className="w-5 h-5 text-orange-600" />
+                  <span className="text-sm font-medium text-orange-600">To Read</span>
                 </div>
-                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                <p className="text-2xl font-bold text-orange-900 dark:text-orange-100">
                   {toReadBooks.length}
                 </p>
               </div>
             </div>
-
-            {/* Personalized Reading Schedule */}
-            {readingSchedule && (
-              <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 mb-4">
-                <h3 className="text-lg font-semibold text-purple-900 dark:text-purple-100 mb-2">
-                  Your Personalized Reading Schedule
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                  {Object.entries(readingSchedule).map(([time, suggestion]) => (
-                    <div key={time} className="bg-white dark:bg-gray-800 rounded p-3">
-                      <div className="font-medium text-purple-900 dark:text-purple-100 capitalize">
-                        {time}
-                      </div>
-                      <div className="text-purple-700 dark:text-purple-300">
-                        {suggestion}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Category Balance Recommendations */}
-            {categoryRecommendations.length > 0 && (
-              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 mb-4">
-                <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">
-                  Reading Balance Suggestions
-                </h3>
-                <ul className="space-y-1">
-                  {categoryRecommendations.map((recommendation, index) => (
-                    <li key={index} className="text-blue-700 dark:text-blue-300 text-sm">
-                      • {recommendation}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* Cosmic Reading Recommendations */}
-            {cosmicRecommendations && cosmicRecommendations.length > 0 && (
-              <div className="bg-indigo-50 dark:bg-indigo-900/20 rounded-lg p-4">
-                <h3 className="text-lg font-semibold text-indigo-900 dark:text-indigo-100 mb-2">
-                  Cosmic Reading Insights
-                </h3>
-                <ul className="space-y-1">
-                  {cosmicRecommendations.map((recommendation, index) => (
-                    <li key={index} className="text-indigo-700 dark:text-indigo-300 text-sm">
-                      • {recommendation}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
           </div>
 
           {/* Add Book Form */}
@@ -365,42 +217,43 @@ export default function BookList({ userProfile, cosmicData }) {
                   placeholder="Book Title"
                   value={newBook.title}
                   onChange={(e) => setNewBook({...newBook, title: e.target.value})}
-                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                  className="p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                 />
                 <input
                   type="text"
                   placeholder="Author"
                   value={newBook.author}
                   onChange={(e) => setNewBook({...newBook, author: e.target.value})}
-                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                  className="p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                 />
                 <select
                   value={newBook.category}
                   onChange={(e) => setNewBook({...newBook, category: e.target.value})}
-                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                  className="p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                 >
-                  {Object.entries(categories).map(([key, category]) => (
-                    <option key={key} value={key}>{category.name}</option>
-                  ))}
+                  <option value="business_financial">Business & Financial</option>
+                  <option value="spiritual_development">Spiritual Development</option>
+                  <option value="personal_development">Personal Development</option>
+                  <option value="diverse_learning">Diverse Learning</option>
                 </select>
                 <select
                   value={newBook.priority}
                   onChange={(e) => setNewBook({...newBook, priority: e.target.value})}
-                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                  className="p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                 >
                   <option value="essential">Essential</option>
                   <option value="high">High</option>
                   <option value="medium">Medium</option>
                   <option value="low">Low</option>
                 </select>
+                <textarea
+                  placeholder="Notes (optional)"
+                  value={newBook.notes}
+                  onChange={(e) => setNewBook({...newBook, notes: e.target.value})}
+                  rows="3"
+                  className="p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white md:col-span-2"
+                />
               </div>
-              <textarea
-                placeholder="Notes (optional)"
-                value={newBook.notes}
-                onChange={(e) => setNewBook({...newBook, notes: e.target.value})}
-                className="w-full mt-4 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                rows="3"
-              />
               <div className="flex gap-2 mt-4">
                 <button
                   onClick={handleAddBook}
@@ -410,7 +263,7 @@ export default function BookList({ userProfile, cosmicData }) {
                 </button>
                 <button
                   onClick={() => setShowAddForm(false)}
-                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
+                  className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
                 >
                   Cancel
                 </button>
@@ -464,6 +317,21 @@ export default function BookList({ userProfile, cosmicData }) {
                 </div>
               </div>
             )}
+
+            {/* Empty State */}
+            {books.length === 0 && (
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-8 shadow-sm text-center">
+                <BookOpen className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No books yet</h3>
+                <p className="text-gray-600 dark:text-gray-300 mb-4">Start building your reading list by adding your first book.</p>
+                <button
+                  onClick={() => setShowAddForm(true)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Add Your First Book
+                </button>
+              </div>
+            )}
           </div>
         </>
       )}
@@ -473,6 +341,25 @@ export default function BookList({ userProfile, cosmicData }) {
 
 function BookItem({ book, categories, onStatusChange, onDelete }) {
   const CategoryIcon = categories[book.category]?.icon || BookOpen
+
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'completed': return <CheckCircle className="w-4 h-4 text-green-600" />
+      case 'reading': return <BookOpen className="w-4 h-4 text-blue-600" />
+      case 'to_read': return <Clock className="w-4 h-4 text-gray-600" />
+      default: return <Clock className="w-4 h-4 text-gray-600" />
+    }
+  }
+
+  const getPriorityColor = (priority) => {
+    switch (priority) {
+      case 'essential': return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300'
+      case 'high': return 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-300'
+      case 'medium': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300'
+      case 'low': return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300'
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300'
+    }
+  }
 
   return (
     <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
