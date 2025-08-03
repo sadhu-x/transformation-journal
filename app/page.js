@@ -389,7 +389,13 @@ export default function Home() {
           )}
           {activeTab === 'books' && (
             <BookList 
-              userProfile={user}
+              userProfile={{
+                id: user?.id,
+                email: user?.email,
+                primaryGoals: 'trading, financial, personal development', // Default goals
+                doshaBalance: null, // Will be null for most users initially
+                enableCosmicFeatures: false // Default to false
+              }}
               cosmicData={null}
             />
           )}

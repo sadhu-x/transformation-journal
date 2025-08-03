@@ -39,28 +39,54 @@ export default function BookList({ userProfile, cosmicData }) {
   }
 
   useEffect(() => {
-    // Load user's existing books from localStorage or database
-    const savedBooks = localStorage.getItem('userBooks')
-    if (savedBooks) {
-      setBooks(JSON.parse(savedBooks))
-    } else {
-      // Initialize with personalized recommendations based on user's goals
-      const initialBooks = getPersonalizedRecommendations(userProfile)
-      setBooks(initialBooks)
-      localStorage.setItem('userBooks', JSON.stringify(initialBooks))
+    try {
+      // Load user's existing books from localStorage or database
+      const savedBooks = localStorage.getItem('userBooks')
+      if (savedBooks) {
+        setBooks(JSON.parse(savedBooks))
+      } else {
+        // Initialize with personalized recommendations based on user's goals
+        // Handle case where userProfile might be null or not have expected properties
+        const safeUserProfile = userProfile || {}
+        const initialBooks = getPersonalizedRecommendations(safeUserProfile)
+        setBooks(initialBooks)
+        localStorage.setItem('userBooks', JSON.stringify(initialBooks))
+      }
+    } catch (error) {
+      console.error('Error initializing BookList:', error)
+      // Fallback to empty array if there's an error
+      setBooks([])
     }
   }, [userProfile])
 
-  const getPersonalizedReadingSchedule = () => {
-    return getPersonalizedReadingSchedule(userProfile)
+  const getReadingSchedule = () => {
+    try {
+      const safeUserProfile = userProfile || {}
+      return getPersonalizedReadingSchedule(safeUserProfile)
+    } catch (error) {
+      console.error('Error getting reading schedule:', error)
+      return null
+    }
   }
 
-  const getCategoryBalanceRecommendations = () => {
-    return getCategoryBalanceRecommendations(userProfile, books)
+  const getCategoryBalance = () => {
+    try {
+      const safeUserProfile = userProfile || {}
+      return getCategoryBalanceRecommendations(safeUserProfile, books)
+    } catch (error) {
+      console.error('Error getting category balance:', error)
+      return []
+    }
   }
 
-  const getCosmicReadingRecommendations = () => {
-    return getCosmicReadingRecommendations(userProfile, cosmicData)
+  const getCosmicRecommendations = () => {
+    try {
+      const safeUserProfile = userProfile || {}
+      return getCosmicReadingRecommendations(safeUserProfile, cosmicData)
+    } catch (error) {
+      console.error('Error getting cosmic recommendations:', error)
+      return null
+    }
   }
 
   const addBook = () => {
@@ -116,9 +142,9 @@ export default function BookList({ userProfile, cosmicData }) {
   const readingBooks = books.filter(book => book.status === 'reading')
   const toReadBooks = books.filter(book => book.status === 'to_read')
 
-  const readingSchedule = getPersonalizedReadingSchedule()
-  const categoryRecommendations = getCategoryBalanceRecommendations()
-  const cosmicRecommendations = getCosmicReadingRecommendations()
+  const readingSchedule = getReadingSchedule()
+  const categoryRecommendations = getCategoryBalance()
+  const cosmicRecommendations = getCosmicRecommendations()
 
   return (
     <div className="space-y-6">
