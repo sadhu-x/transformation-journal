@@ -88,16 +88,25 @@ ${nonNegotiablesJson}
 
 ---`
 
-      await navigator.clipboard.writeText(contextTemplate)
+      // Create and download the file
+      const blob = new Blob([contextTemplate], { type: 'text/plain' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `journal-entry-${formatDate(entry.timestamp).replace(/,/g, '')}-${entry.id}.txt`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
       
       // Show success feedback
-      setCopyFeedback('Copied!')
+      setCopyFeedback('Downloaded!')
       setTimeout(() => setCopyFeedback(null), 2000)
       
-      console.log('Entry copied to clipboard successfully')
+      console.log('Entry downloaded successfully')
     } catch (error) {
-      console.error('Failed to copy entry:', error)
-      setCopyFeedback('Copy failed')
+      console.error('Failed to download entry:', error)
+      setCopyFeedback('Download failed')
       setTimeout(() => setCopyFeedback(null), 2000)
     }
   }
