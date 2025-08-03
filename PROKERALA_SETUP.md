@@ -56,13 +56,7 @@ curl -X POST https://api.prokerala.com/token \
 
 ```bash
 curl -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
-  https://api.prokerala.com/v2/astrology/planetary-positions \
-  -H "Content-Type: application/json" \
-  -d '{
-    "ayanamsa": 1,
-    "coordinates": "23.1765,75.7885",
-    "datetime": "2025-01-15T06:30:00"
-  }'
+  "https://api.prokerala.com/v2/astrology/birth-details?ayanamsa=1&coordinates=23.1765,75.7885&datetime=2025-01-15T06:30:00%2B00:00"
 ```
 
 ## Environment Variables
@@ -76,31 +70,29 @@ PROKERALA_CLIENT_SECRET=your_client_secret_here
 
 ## API Endpoints We Use
 
-### 1. Planetary Positions
-- **Endpoint**: `/v2/astrology/planetary-positions`
-- **Method**: POST
-- **Purpose**: Get planetary positions at birth time
+### 1. Birth Details
+- **Endpoint**: `/v2/astrology/birth-details`
+- **Method**: GET
+- **Purpose**: Get nakshatra and birth details
 
-### 2. Natal Chart
-- **Endpoint**: `/v2/astrology/natal-chart`
-- **Method**: POST
-- **Purpose**: Get complete natal chart data
+### 2. Planetary Positions
+- **Endpoint**: `/v2/astrology/planetary-positions`
+- **Method**: GET
+- **Purpose**: Get planetary positions at birth time
 
 ## Request Parameters
 
 ### Required Parameters
-- `ayanamsa`: Ayanamsa system (1 = Lahiri)
+- `ayanamsa`: Ayanamsa system (1 = Lahiri, 3 = Raman, 5 = KP)
 - `coordinates`: Latitude,longitude (e.g., "23.1765,75.7885")
-- `datetime`: Birth date and time in ISO format
+- `datetime`: Birth date and time in ISO 8601 format (URL encoded)
 
-### Example Request Body
-```json
-{
-  "ayanamsa": 1,
-  "coordinates": "23.1765,75.7885",
-  "datetime": "2025-01-15T06:30:00"
-}
+### Example Query String
 ```
+ayanamsa=1&coordinates=23.1765,75.7885&datetime=2025-01-15T06:30:00%2B00:00
+```
+
+**Important**: The datetime parameter must be URL encoded. The "+" character becomes "%2B".
 
 ## Response Format
 
@@ -158,6 +150,11 @@ The app logs detailed information:
    - Verify API endpoints are correct
    - Try again later
 
+4. **"Invalid datetime format"**:
+   - Ensure datetime is in ISO 8601 format
+   - URL encode the datetime parameter
+   - Check timezone handling
+
 ### Getting Help
 
 - **Documentation**: [Prokerala API Docs](https://api.prokerala.com/docs)
@@ -180,5 +177,7 @@ The Transformation Journal app:
 - Provides fallback error handling
 - Logs detailed debugging information
 - Stores birth chart data in Supabase for reuse
+- Uses GET requests with query parameters
+- Properly URL encodes datetime parameters
 
 Your Prokerala API is now ready to provide accurate Vedic astrology calculations! 🌟 

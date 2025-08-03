@@ -93,57 +93,59 @@ export async function POST(request) {
       )
     }
 
-    // Format date and time
+    // Format date and time for ISO 8601 format
     const dateTime = new Date(`${birthDate}T${birthTime}`)
-    const day = dateTime.getDate()
-    const month = dateTime.getMonth() + 1
-    const year = dateTime.getFullYear()
-    const hour = dateTime.getHours()
-    const minute = dateTime.getMinutes()
+    const isoDateTime = dateTime.toISOString().replace('Z', '+00:00')
+    
+    // Encode the datetime parameter as mentioned in the documentation
+    const encodedDateTime = encodeURIComponent(isoDateTime)
 
-    // Try Prokerala planetary positions endpoint
+    // Build query parameters
+    const params = new URLSearchParams({
+      ayanamsa: '1', // Lahiri ayanamsa
+      coordinates: `${latitude},${longitude}`,
+      datetime: encodedDateTime
+    })
+
+    console.log('Query parameters:', params.toString())
+
+    // Try Prokerala birth details endpoint (GET method with query parameters)
     try {
-      console.log('Calling Prokerala planetary positions endpoint')
-      console.log('API URL:', `${PROKERALA_API_URL}/planetary-positions`)
+      console.log('Calling Prokerala birth details endpoint')
+      const url = `${PROKERALA_API_URL}/birth-details?${params.toString()}`
+      console.log('API URL:', url)
       
-      const response = await fetch(`${PROKERALA_API_URL}/planetary-positions`, {
-        method: 'POST',
+      const response = await fetch(url, {
+        method: 'GET',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          ayanamsa: 1, // Lahiri ayanamsa
-          coordinates: `${latitude},${longitude}`,
-          datetime: `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}T${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:00`
-        })
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        }
       })
 
-      // Also try the natal chart endpoint as a fallback
+      // Also try the planetary positions endpoint as a fallback
       if (!response.ok) {
-        console.log('Trying Prokerala natal chart endpoint as fallback...')
-        const natalResponse = await fetch(`${PROKERALA_API_URL}/natal-chart`, {
-          method: 'POST',
+        console.log('Trying Prokerala planetary positions endpoint as fallback...')
+        const planetaryUrl = `${PROKERALA_API_URL}/planetary-positions?${params.toString()}`
+        const planetaryResponse = await fetch(planetaryUrl, {
+          method: 'GET',
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            ayanamsa: 1,
-            coordinates: `${latitude},${longitude}`,
-            datetime: `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}T${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:00`
-          })
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
+          }
         })
 
-        if (natalResponse.ok) {
-          const natalData = await natalResponse.json()
-          console.log('✅ Natal chart API response:', natalData)
-          const formattedData = formatProkeralaData(natalData)
+        if (planetaryResponse.ok) {
+          const planetaryData = await planetaryResponse.json()
+          console.log('✅ Planetary positions API response:', planetaryData)
+          const formattedData = formatProkeralaData(planetaryData)
           if (formattedData) {
             return NextResponse.json(formattedData)
           }
         } else {
-          console.warn('❌ Natal chart API also failed:', natalResponse.status, natalResponse.statusText)
+          console.warn('❌ Planetary positions API also failed:', planetaryResponse.status, planetaryResponse.statusText)
+          const errorText = await planetaryResponse.text()
+          console.warn('❌ Planetary API error response:', errorText)
         }
       }
 
