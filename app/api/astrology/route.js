@@ -120,10 +120,10 @@ export async function POST(request) {
     console.log('Query parameters:', params.toString())
     console.log('Decoded datetime from params:', params.get('datetime'))
 
-    // Try Prokerala kundli endpoint (GET method with query parameters)
+    // Try Prokerala planetary positions endpoint (GET method with query parameters)
     try {
-      console.log('Calling Prokerala kundli endpoint with GET')
-      const url = `${PROKERALA_API_URL}/kundli?${params.toString()}`
+      console.log('Calling Prokerala planetary positions endpoint with GET')
+      const url = `${PROKERALA_API_URL}/planetary-positions?${params.toString()}`
       console.log('API URL:', url)
       console.log('Query parameters:', params.toString())
       
@@ -138,11 +138,11 @@ export async function POST(request) {
       console.log('Response status:', response.status)
       console.log('Response headers:', Object.fromEntries(response.headers.entries()))
 
-      // Also try the birth details endpoint as a fallback
+      // Also try the kundli endpoint as a fallback
       if (!response.ok) {
-        console.log('Trying Prokerala birth details endpoint as fallback...')
-        const birthDetailsUrl = `${PROKERALA_API_URL}/birth-details?${params.toString()}`
-        const birthDetailsResponse = await fetch(birthDetailsUrl, {
+        console.log('Trying Prokerala kundli endpoint as fallback...')
+        const kundliUrl = `${PROKERALA_API_URL}/kundli?${params.toString()}`
+        const kundliResponse = await fetch(kundliUrl, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -150,17 +150,17 @@ export async function POST(request) {
           }
         })
 
-        if (birthDetailsResponse.ok) {
-          const birthDetailsData = await birthDetailsResponse.json()
-          console.log('✅ Birth details API response:', birthDetailsData)
-          const formattedData = formatProkeralaData(birthDetailsData)
+        if (kundliResponse.ok) {
+          const kundliData = await kundliResponse.json()
+          console.log('✅ Kundli API response:', kundliData)
+          const formattedData = formatProkeralaData(kundliData)
           if (formattedData) {
             return NextResponse.json(formattedData)
           }
         } else {
-          console.warn('❌ Birth details API also failed:', birthDetailsResponse.status, birthDetailsResponse.statusText)
-          const errorText = await birthDetailsResponse.text()
-          console.warn('❌ Birth details API error response:', errorText)
+          console.warn('❌ Kundli API also failed:', kundliResponse.status, kundliResponse.statusText)
+          const errorText = await kundliResponse.text()
+          console.warn('❌ Kundli API error response:', errorText)
         }
       }
 
