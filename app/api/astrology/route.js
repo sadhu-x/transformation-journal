@@ -46,6 +46,77 @@ function getHouseLord(rashi) {
   return lords[rashi] || 'Unknown'
 }
 
+// Calculate timezone based on location and date
+function calculateTimezone(latitude, longitude, year, month, day, hours) {
+  try {
+    // Create a date object for the specific location and time
+    const date = new Date(year, month - 1, day, hours, 0, 0)
+    
+    // Get timezone offset in minutes and convert to hours
+    const timezoneOffset = date.getTimezoneOffset()
+    const timezoneHours = -timezoneOffset / 60
+    
+    // For US locations, we need to account for DST
+    if (longitude < -50 && latitude > 20 && latitude < 70) {
+      // US timezone calculation
+      const isDST = isDaylightSavingTime(year, month, day)
+      
+      // Base timezone based on longitude
+      let baseTimezone
+      if (longitude >= -67.5 && longitude < -82.5) {
+        baseTimezone = -5 // Eastern
+      } else if (longitude >= -82.5 && longitude < -97.5) {
+        baseTimezone = -6 // Central
+      } else if (longitude >= -97.5 && longitude < -112.5) {
+        baseTimezone = -7 // Mountain
+      } else if (longitude >= -112.5 && longitude < -127.5) {
+        baseTimezone = -8 // Pacific
+      } else {
+        baseTimezone = -7 // Default to Mountain for Denver area
+      }
+      
+      return isDST ? baseTimezone - 1 : baseTimezone
+    }
+    
+    // For other locations, use the calculated timezone
+    return timezoneHours
+  } catch (error) {
+    console.error('Error calculating timezone:', error)
+    // Fallback to a reasonable default based on longitude
+    if (longitude < -50) {
+      return -7 // US Mountain Time as fallback
+    }
+    return 0 // UTC as fallback
+  }
+}
+
+// Check if a date is during Daylight Saving Time in the US
+function isDaylightSavingTime(year, month, day) {
+  // DST rules for US (simplified)
+  // DST starts: Second Sunday in March
+  // DST ends: First Sunday in November
+  
+  const date = new Date(year, month - 1, day)
+  const yearStart = new Date(year, 0, 1)
+  const daysSinceYearStart = Math.floor((date - yearStart) / (1000 * 60 * 60 * 24))
+  
+  // Find second Sunday in March
+  const march1 = new Date(year, 2, 1)
+  const march1Day = march1.getDay() // 0 = Sunday, 1 = Monday, etc.
+  const daysToSecondSunday = (7 - march1Day) % 7 + 7
+  const dstStart = new Date(year, 2, 1 + daysToSecondSunday)
+  const dstStartDays = Math.floor((dstStart - yearStart) / (1000 * 60 * 60 * 24))
+  
+  // Find first Sunday in November
+  const nov1 = new Date(year, 10, 1)
+  const nov1Day = nov1.getDay()
+  const daysToFirstSunday = (7 - nov1Day) % 7
+  const dstEnd = new Date(year, 10, 1 + daysToFirstSunday)
+  const dstEndDays = Math.floor((dstEnd - yearStart) / (1000 * 60 * 60 * 24))
+  
+  return daysSinceYearStart >= dstStartDays && daysSinceYearStart < dstEndDays
+}
+
 export async function POST(request) {
   try {
     const { birthDate, birthTime, latitude, longitude } = await request.json()
@@ -68,8 +139,8 @@ export async function POST(request) {
     const hours = date.getHours()
     const minutes = date.getMinutes()
     
-    // Calculate timezone (simplified - you might want to make this more accurate)
-    const timezone = 5.5 // Default to IST, you can make this dynamic
+    // Calculate timezone based on location and date
+    const timezone = calculateTimezone(parseFloat(latitude), parseFloat(longitude), year, month, day, hours)
     
     const requestData = {
       year,
