@@ -193,6 +193,23 @@ export async function POST(request) {
         // Format the response
         const formattedData = formatProkeralaData(data)
         console.log('Formatted data:', formattedData)
+        
+        // If formatting fails, return raw data for debugging
+        if (!formattedData || formattedData.planets.length === 0) {
+          console.log('Formatting failed or returned empty data, returning raw response for debugging')
+          return NextResponse.json({
+            raw_data: data,
+            formatted_data: formattedData,
+            debug_info: {
+              response_keys: Object.keys(data),
+              has_data_property: !!data.data,
+              has_result_property: !!data.result,
+              data_keys: data.data ? Object.keys(data.data) : null,
+              result_keys: data.result ? Object.keys(data.result) : null
+            }
+          })
+        }
+        
         if (formattedData) {
           return NextResponse.json(formattedData)
         }
