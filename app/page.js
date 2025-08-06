@@ -59,6 +59,14 @@ export default function Home() {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [toastMessage, setToastMessage] = useState(null)
+  const [selectedDate, setSelectedDate] = useState(() => {
+    // Get today's date in local timezone
+    const now = new Date()
+    const year = now.getFullYear()
+    const month = String(now.getMonth() + 1).padStart(2, '0')
+    const day = String(now.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  })
 
   // Check authentication status on mount
   useEffect(() => {
@@ -345,7 +353,7 @@ export default function Home() {
             </div>
             <div className="flex items-center gap-4">
               <CosmicContextCompact />
-              <ExportDropdown entries={entries} />
+              <ExportDropdown entries={entries} selectedDate={activeTab === 'non-negotiables' ? selectedDate : null} />
               <UserProfile user={user} onSignOut={handleSignOut} />
               <ThemeToggle />
             </div>
@@ -385,6 +393,8 @@ export default function Home() {
             <NonNegotiables 
               items={nonNegotiables}
               onUpdateItems={setNonNegotiables}
+              selectedDate={selectedDate}
+              onDateChange={setSelectedDate}
             />
           )}
           {activeTab === 'books' && (

@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { Plus, Trash2, Edit3, Check, X, Save } from 'lucide-react'
-import { addNonNegotiable, updateNonNegotiable, deleteNonNegotiable } from '../../lib/dataService'
+import { addNonNegotiable, updateNonNegotiable, deleteNonNegotiable, copyDailyRepeatingNonNegotiables } from '../../lib/dataService'
 import DatePicker from './DatePicker'
 
-export default function NonNegotiables({ items = [], onUpdateItems }) {
+export default function NonNegotiables({ items = [], onUpdateItems, selectedDate: externalSelectedDate, onDateChange }) {
   const [editingId, setEditingId] = useState(null)
   const [editText, setEditText] = useState('')
   const [newItemText, setNewItemText] = useState('')
@@ -18,6 +18,42 @@ export default function NonNegotiables({ items = [], onUpdateItems }) {
     const day = String(now.getDate()).padStart(2, '0')
     return `${year}-${month}-${day}`
   })
+  const [repeatType, setRepeatType] = useState('one_time')
+
+  // Sync external selectedDate with internal state
+  useEffect(() => {
+    if (externalSelectedDate && externalSelectedDate !== selectedDate) {
+      setSelectedDate(externalSelectedDate)
+    }
+  }, [externalSelectedDate])
+
+  // Notify parent of date changes
+  const handleDateChange = (newDate) => {
+    setSelectedDate(newDate)
+    if (onDateChange) {
+      onDateChange(newDate)
+    }
+  }
+
+  // Auto-load daily repeats when date changes
+  useEffect(() => {
+    const loadRepeatsForDate = async () => {
+      try {
+        const copiedItems = await copyDailyRepeatingNonNegotiables(selectedDate)
+        if (copiedItems.length > 0) {
+          onUpdateItems(prev => [...copiedItems, ...prev])
+        }
+      } catch (error) {
+        console.error('Failed to auto-load daily repeats:', error)
+      }
+    }
+
+    // Only auto-load if there are no items for the selected date
+    const itemsForDate = getItemsForDate(selectedDate)
+    if (itemsForDate.length === 0) {
+      loadRepeatsForDate()
+    }
+  }, [selectedDate])
 
   // Get today's date in YYYY-MM-DD format in local timezone
   const getTodayDate = () => {
@@ -51,7 +87,8 @@ export default function NonNegotiables({ items = [], onUpdateItems }) {
         completed: false,
         created_at: new Date().toISOString(),
         completed_at: null,
-        date: selectedDate // Add the selected date
+        date: selectedDate, // Add the selected date
+        repeat_type: repeatType // Add the repeat type
       }
       
       try {
@@ -146,43 +183,19 @@ export default function NonNegotiables({ items = [], onUpdateItems }) {
     }
   }
 
-  const copyFromYesterday = async () => {
-    const yesterday = new Date()
-    yesterday.setDate(yesterday.getDate() - 1)
-    const year = yesterday.getFullYear()
-    const month = String(yesterday.getMonth() + 1).padStart(2, '0')
-    const day = String(yesterday.getDate()).padStart(2, '0')
-    const yesterdayDate = `${year}-${month}-${day}`
-    
-    const yesterdayItems = getItemsForDate(yesterdayDate)
-    
-    if (yesterdayItems.length === 0) {
-      alert('No non-negotiables found for yesterday')
-      return
-    }
-
+  const loadDailyRepeats = async () => {
     try {
-      // Copy each item from yesterday to today
-      const copyPromises = yesterdayItems.map(async (item) => {
-        const newItem = {
-          text: item.text,
-          completed: false, // Reset completion status
-          created_at: new Date().toISOString(),
-          completed_at: null,
-          date: getTodayDate()
-        }
-        
-        const savedItem = await addNonNegotiable(newItem)
-        return savedItem
-      })
-
-      const copiedItems = await Promise.all(copyPromises)
-      onUpdateItems(prev => [...copiedItems, ...prev])
+      const copiedItems = await copyDailyRepeatingNonNegotiables(getTodayDate())
       
-      alert(`Copied ${copiedItems.length} non-negotiables from yesterday`)
+      if (copiedItems.length > 0) {
+        onUpdateItems(prev => [...copiedItems, ...prev])
+        alert(`Loaded ${copiedItems.length} daily repeating non-negotiables`)
+      } else {
+        alert('No daily repeating non-negotiables to load')
+      }
     } catch (error) {
-      console.error('Failed to copy from yesterday:', error)
-      alert('Failed to copy non-negotiables from yesterday')
+      console.error('Failed to load daily repeats:', error)
+      alert('Failed to load daily repeating non-negotiables')
     }
   }
 
@@ -223,7 +236,7 @@ export default function NonNegotiables({ items = [], onUpdateItems }) {
           <div className="flex-1">
             <DatePicker
               value={selectedDate}
-              onChange={setSelectedDate}
+              onChange={handleDateChange}
               className="w-full"
             />
           </div>
@@ -239,10 +252,10 @@ export default function NonNegotiables({ items = [], onUpdateItems }) {
             )}
             {selectedDate === getTodayDate() && (
               <button
-                onClick={copyFromYesterday}
+                onClick={loadDailyRepeats}
                 className="px-4 py-2 text-sm bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-md hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-sm hover:shadow-md"
               >
-                Copy from Yesterday
+                Load Daily Repeats
               </button>
             )}
           </div>
@@ -354,32 +367,61 @@ export default function NonNegotiables({ items = [], onUpdateItems }) {
         </button>
       ) : (
         <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800">
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={newItemText}
-              onChange={(e) => setNewItemText(e.target.value)}
-              placeholder="Enter your non-negotiable..."
-              className="flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-              onKeyPress={(e) => e.key === 'Enter' && addItem()}
-              autoFocus
-            />
-            <button
-              onClick={addItem}
-              disabled={!newItemText.trim()}
-              className="px-3 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              <Plus size={16} />
-            </button>
-            <button
-              onClick={() => {
-                setShowAddForm(false)
-                setNewItemText('')
-              }}
-              className="px-3 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
-            >
-              <X size={16} />
-            </button>
+          <div className="space-y-3">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={newItemText}
+                onChange={(e) => setNewItemText(e.target.value)}
+                placeholder="Enter your non-negotiable..."
+                className="flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                onKeyPress={(e) => e.key === 'Enter' && addItem()}
+                autoFocus
+              />
+              <button
+                onClick={addItem}
+                disabled={!newItemText.trim()}
+                className="px-3 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <Plus size={16} />
+              </button>
+              <button
+                onClick={() => {
+                  setShowAddForm(false)
+                  setNewItemText('')
+                }}
+                className="px-3 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            
+            {/* Repeat Type Selector */}
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-gray-600 dark:text-gray-400">Repeat:</span>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setRepeatType('one_time')}
+                  className={`px-3 py-1 text-xs rounded-md transition-colors ${
+                    repeatType === 'one_time'
+                      ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-300 dark:border-purple-600'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 border border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  }`}
+                >
+                  One-Time Only
+                </button>
+                <button
+                  onClick={() => setRepeatType('daily')}
+                  className={`px-3 py-1 text-xs rounded-md transition-colors ${
+                    repeatType === 'daily'
+                      ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-300 dark:border-blue-600'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 border border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  }`}
+                >
+                  Repeat Daily
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -449,12 +491,18 @@ export default function NonNegotiables({ items = [], onUpdateItems }) {
                       >
                         {item.text}
                       </p>
-                                             <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
-                         <span>Created: {formatDate(item.created_at || item.createdAt)}</span>
-                         {item.completed && (
-                           <span>Completed: {formatDate(item.completed_at || item.completedAt)}</span>
-                         )}
-                       </div>
+                      <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+                        <span>Created: {formatDate(item.created_at || item.createdAt)}</span>
+                        {item.completed && (
+                          <span>Completed: {formatDate(item.completed_at || item.completedAt)}</span>
+                        )}
+                        {item.repeat_type === 'daily' && (
+                          <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
+                            <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                            Daily Repeat
+                          </span>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>

@@ -4,21 +4,21 @@ import { useState } from 'react'
 import { Download, Database } from 'lucide-react'
 import { exportData, generateInstructionTemplate } from '../../lib/dataService'
 
-export default function ExportDropdown({ entries }) {
+export default function ExportDropdown({ entries, selectedDate = null }) {
   const [isOpen, setIsOpen] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
 
-  const exportAsJSON = async () => {
+  const exportAsJSON = async (dateFilter = null) => {
     setIsExporting(true)
     try {
       // Use database export to get complete data with images and instructions
-      const exportPackage = await exportData()
+      const exportPackage = await exportData(dateFilter)
       const dataStr = JSON.stringify(exportPackage, null, 2)
       const dataBlob = new Blob([dataStr], { type: 'application/json' })
       const url = URL.createObjectURL(dataBlob)
       const link = document.createElement('a')
       link.href = url
-      link.download = `tekne-journal-${new Date().toISOString().split('T')[0]}.json`
+      link.download = `tekne-journal-${dateFilter || new Date().toISOString().split('T')[0]}.json`
       link.click()
       URL.revokeObjectURL(url)
     } catch (error) {
@@ -41,7 +41,7 @@ export default function ExportDropdown({ entries }) {
       const url = URL.createObjectURL(dataBlob)
       const link = document.createElement('a')
       link.href = url
-      link.download = `tekne-journal-${new Date().toISOString().split('T')[0]}.json`
+      link.download = `tekne-journal-${dateFilter || new Date().toISOString().split('T')[0]}.json`
       link.click()
       URL.revokeObjectURL(url)
     } finally {
@@ -65,13 +65,23 @@ export default function ExportDropdown({ entries }) {
         <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700 z-50">
           <div className="py-1">
             <button
-              onClick={exportAsJSON}
+              onClick={() => exportAsJSON()}
               disabled={isExporting}
               className="w-full flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
             >
               <Database className="h-4 w-4 mr-2" />
-              {isExporting ? 'Exporting...' : 'Export JSON'}
+              {isExporting ? 'Exporting...' : 'Export All Data'}
             </button>
+            {selectedDate && (
+              <button
+                onClick={() => exportAsJSON(selectedDate)}
+                disabled={isExporting}
+                className="w-full flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+              >
+                <Database className="h-4 w-4 mr-2" />
+                {isExporting ? 'Exporting...' : `Export ${selectedDate}`}
+              </button>
+            )}
           </div>
         </div>
       )}
