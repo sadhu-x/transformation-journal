@@ -106,23 +106,23 @@ export default function WheelOfLife() {
                 </div>
               )}
               
-              <div className="flex gap-2 mt-4">
+                            <div className="flex gap-2 mt-4">
                 <button
                   onClick={() => handleTextEdit(area.id)}
                   className="flex-1 bg-white/20 hover:bg-white/30 text-white py-2 px-3 rounded-lg transition-colors text-sm font-medium"
+                  title={segmentData.text ? 'Edit Goal' : 'Add Goal'}
                 >
-                  <Edit3 size={14} className="inline mr-2" />
-                  {segmentData.text ? 'Edit Goal' : 'Add Goal'}
+                  <Edit3 size={16} />
                 </button>
-                                 {segmentData.text && (
-                   <button
-                     onClick={() => clearIndividualGoal(area.id)}
-                     className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 px-3 rounded-lg transition-colors text-sm font-medium"
-                   >
-                     <Trash2 size={14} className="inline mr-2" />
-                     Clear Goal
-                   </button>
-                 )}
+                {segmentData.text && (
+                  <button
+                    onClick={() => clearIndividualGoal(area.id)}
+                    className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 px-3 rounded-lg transition-colors text-sm font-medium"
+                  >
+                    <Trash2 size={14} className="inline mr-2" />
+                    Clear Goal
+                  </button>
+                )}
               </div>
             </div>
           )
