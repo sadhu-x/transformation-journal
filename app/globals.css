@@ -102,7 +102,7 @@ input[type="range"]:focus::-moz-range-thumb {
 
 /* Wheel of Life Styles */
 .wheel-of-life-container {
-  @apply max-w-6xl mx-auto;
+  @apply max-w-7xl mx-auto;
 }
 
 .wheel {
@@ -164,25 +164,25 @@ input[type="range"]:focus::-moz-range-thumb {
   @apply absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors z-10;
 }
 
-/* Segment-specific image sizing */
+/* Segment-specific image sizing for larger wheel */
 .layout-single .segment-image {
-  @apply w-16 h-16;
+  @apply w-20 h-20;
 }
 
 .layout-side-by-side .segment-image {
-  @apply w-12 h-12;
+  @apply w-16 h-16;
 }
 
 .layout-triangle .segment-image {
-  @apply w-10 h-10;
+  @apply w-14 h-14;
 }
 
 .layout-grid-2x2 .segment-image {
-  @apply w-8 h-8;
+  @apply w-12 h-12;
 }
 
 .layout-grid-2x3 .segment-image {
-  @apply w-8 h-6;
+  @apply w-12 h-10;
 }
 
 /* Wheel segment hover effects */

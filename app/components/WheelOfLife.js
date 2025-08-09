@@ -185,9 +185,9 @@ export default function WheelOfLife() {
 
       {/* Wheel Container */}
       <div className="wheel-wrapper flex justify-center items-center mb-8">
-        <div className="wheel relative w-96 h-96">
+        <div className="wheel relative w-[500px] h-[500px]">
           {LIFE_AREAS.map((area, index) => {
-            const angle = (index * 30) - 15 // Start from -15° to center segments
+            const angle = index * 30 // Each segment is 30 degrees
             const segmentData = segments[area.id] || { text: '', images: [] }
             
             return (
@@ -213,8 +213,8 @@ export default function WheelOfLife() {
                     transform: 'rotate(15deg)'
                   }}
                 >
-                  <div className="segment-inner absolute inset-2 bg-white/20 rounded-full flex items-center justify-center">
-                    <div className="text-center text-white font-medium text-xs px-2">
+                  <div className="segment-inner absolute inset-4 bg-white/20 rounded-full flex items-center justify-center">
+                    <div className="text-center text-white font-medium text-sm px-2">
                       <div className="segment-name mb-1">{area.name}</div>
                       {segmentData.text && (
                         <div className="segment-text text-xs opacity-90 truncate mb-1">
@@ -231,7 +231,7 @@ export default function WheelOfLife() {
                           className="text-white/80 hover:text-white text-xs p-1 rounded hover:bg-white/20 transition-colors"
                           title="Edit text"
                         >
-                          <Edit3 size={10} />
+                          <Edit3 size={12} />
                         </button>
                         {segmentData.images && segmentData.images.length > 0 && (
                           <span className="text-white/80 text-xs bg-black/30 px-1 rounded">
@@ -247,8 +247,8 @@ export default function WheelOfLife() {
           })}
           
           {/* Center Circle */}
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center shadow-lg">
-            <div className="text-white text-center text-xs font-bold">
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center shadow-lg">
+            <div className="text-white text-center text-sm font-bold">
               <div>MANIFEST</div>
               <div>YOUR</div>
               <div>LIFE</div>
