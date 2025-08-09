@@ -25,7 +25,7 @@ export default function TabContainer({ children, activeTab, onTabChange }) {
     },
     {
       id: 'wheel-of-life',
-      label: 'Wheel of Life',
+      label: 'Goals',
       icon: Circle,
       count: null
     }
