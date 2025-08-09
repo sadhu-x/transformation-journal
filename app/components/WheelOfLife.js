@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Edit3, X, Trash2, Target, Heart, DollarSign, Home, BookOpen, Palette, Sparkles, Plane, Users, PartyPopper, Brain, Activity } from 'lucide-react'
+import { Edit3, X, Target, Heart, DollarSign, Home, BookOpen, Palette, Sparkles, Plane, Users, PartyPopper, Brain, Activity } from 'lucide-react'
 
 const LIFE_AREAS = [
   { id: 1, name: 'Health & Vitality', color: 'from-red-400 to-red-600', icon: Activity },
@@ -61,17 +61,7 @@ export default function WheelOfLife() {
     setTextInput('')
   }
 
-  const clearIndividualGoal = (segmentId) => {
-    if (confirm('Are you sure you want to clear this goal?')) {
-      setSegments(prev => {
-        const newSegments = { ...prev }
-        if (newSegments[segmentId]) {
-          delete newSegments[segmentId]
-        }
-        return newSegments
-      })
-    }
-  }
+
 
   return (
     <div className="goals-container">
@@ -106,23 +96,14 @@ export default function WheelOfLife() {
                 </div>
               )}
               
-                            <div className="flex gap-2 mt-4">
+                            <div className="flex justify-end mt-4">
                 <button
                   onClick={() => handleTextEdit(area.id)}
-                  className="flex-1 bg-white/20 hover:bg-white/30 text-white py-2 px-3 rounded-lg transition-colors text-sm font-medium"
+                  className="bg-white/20 hover:bg-white/30 text-white p-2 rounded-full transition-colors"
                   title={segmentData.text ? 'Edit Goal' : 'Add Goal'}
                 >
                   <Edit3 size={16} />
                 </button>
-                {segmentData.text && (
-                  <button
-                    onClick={() => clearIndividualGoal(area.id)}
-                    className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 px-3 rounded-lg transition-colors text-sm font-medium"
-                  >
-                    <Trash2 size={14} className="inline mr-2" />
-                    Clear Goal
-                  </button>
-                )}
               </div>
             </div>
           )
