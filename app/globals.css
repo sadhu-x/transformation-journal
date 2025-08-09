@@ -99,3 +99,97 @@ input[type="range"]:focus::-moz-range-thumb {
 .markdown-preview em {
   @apply italic;
 }
+
+/* Wheel of Life Styles */
+.wheel-of-life-container {
+  @apply max-w-6xl mx-auto;
+}
+
+.wheel {
+  @apply relative;
+}
+
+.wheel-segment {
+  @apply transition-all duration-300;
+}
+
+.wheel-segment:hover {
+  @apply z-10;
+}
+
+.segment-content {
+  @apply transition-all duration-300;
+}
+
+.segment-inner {
+  @apply backdrop-blur-sm;
+}
+
+/* Image Collage Layouts */
+.image-collage {
+  @apply w-full h-full flex items-center justify-center;
+}
+
+.image-collage.layout-single {
+  @apply flex-col;
+}
+
+.image-collage.layout-side-by-side {
+  @apply flex-row gap-1;
+}
+
+.image-collage.layout-triangle {
+  @apply flex-wrap justify-center items-center;
+}
+
+.image-collage.layout-grid-2x2 {
+  @apply grid grid-cols-2 gap-1;
+}
+
+.image-collage.layout-grid-2x3 {
+  @apply grid grid-cols-2 gap-1;
+}
+
+.image-container {
+  @apply relative;
+}
+
+.segment-image {
+  @apply w-full h-full object-cover rounded-sm;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.remove-image-btn {
+  @apply absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors z-10;
+}
+
+/* Segment-specific image sizing */
+.layout-single .segment-image {
+  @apply w-16 h-16;
+}
+
+.layout-side-by-side .segment-image {
+  @apply w-12 h-12;
+}
+
+.layout-triangle .segment-image {
+  @apply w-10 h-10;
+}
+
+.layout-grid-2x2 .segment-image {
+  @apply w-8 h-8;
+}
+
+.layout-grid-2x3 .segment-image {
+  @apply w-8 h-6;
+}
+
+/* Wheel segment hover effects */
+.wheel-segment.has-images {
+  @apply shadow-lg;
+}
+
+.wheel-segment.has-images:hover {
+  @apply shadow-xl scale-110;
+}

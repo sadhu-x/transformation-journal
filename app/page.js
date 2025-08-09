@@ -7,6 +7,7 @@ import JournalEntry from './components/JournalEntry'
 import EntryList from './components/EntryList'
 import NonNegotiables from './components/NonNegotiables'
 import BookList from './components/BookList'
+import WheelOfLife from './components/WheelOfLife'
 import TabContainer from './components/TabContainer'
 import CosmicContextCompact from './components/CosmicContextCompact'
 import ExportDropdown from './components/ExportData'
@@ -408,6 +409,9 @@ export default function Home() {
               }}
               cosmicData={null}
             />
+          )}
+          {activeTab === 'wheel-of-life' && (
+            <WheelOfLife />
           )}
         </TabContainer>
 

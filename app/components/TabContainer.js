@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { BookOpen, CheckSquare, Book } from 'lucide-react'
+import { BookOpen, CheckSquare, Book, Circle } from 'lucide-react'
 
 export default function TabContainer({ children, activeTab, onTabChange }) {
   const tabs = [
@@ -21,6 +21,12 @@ export default function TabContainer({ children, activeTab, onTabChange }) {
       id: 'books',
       label: 'Reading List',
       icon: Book,
+      count: null
+    },
+    {
+      id: 'wheel-of-life',
+      label: 'Wheel of Life',
+      icon: Circle,
       count: null
     }
   ]
