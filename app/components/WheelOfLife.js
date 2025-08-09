@@ -1,21 +1,21 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Plus, X, Upload, Link, Edit3, Trash2, Target, Star } from 'lucide-react'
+import { Plus, X, Upload, Link, Edit3, Trash2, Target, Star, Heart, DollarSign, Home, BookOpen, Palette, Sparkles, Plane, Users, PartyPopper, Brain, Activity, Zap } from 'lucide-react'
 
 const LIFE_AREAS = [
-  { id: 1, name: 'Health & Vitality', color: 'from-red-400 to-red-600', icon: '💪' },
-  { id: 2, name: 'Relationships & Love', color: 'from-pink-400 to-pink-600', icon: '❤️' },
-  { id: 3, name: 'Career & Purpose', color: 'from-blue-400 to-blue-600', icon: '🎯' },
-  { id: 4, name: 'Wealth & Abundance', color: 'from-green-400 to-green-600', icon: '💰' },
-  { id: 5, name: 'Home & Environment', color: 'from-yellow-400 to-yellow-600', icon: '🏠' },
-  { id: 6, name: 'Learning & Growth', color: 'from-indigo-400 to-indigo-600', icon: '📚' },
-  { id: 7, name: 'Creativity & Expression', color: 'from-purple-400 to-purple-600', icon: '🎨' },
-  { id: 8, name: 'Spirituality & Inner Peace', color: 'from-cyan-400 to-cyan-600', icon: '🧘' },
-  { id: 9, name: 'Adventure & Travel', color: 'from-orange-400 to-orange-600', icon: '✈️' },
-  { id: 10, name: 'Community & Service', color: 'from-teal-400 to-teal-600', icon: '🤝' },
-  { id: 11, name: 'Joy & Fun', color: 'from-rose-400 to-rose-600', icon: '🎉' },
-  { id: 12, name: 'Wisdom & Intuition', color: 'from-violet-400 to-violet-600', icon: '🔮' }
+  { id: 1, name: 'Health & Vitality', color: 'from-red-400 to-red-600', icon: Activity },
+  { id: 2, name: 'Relationships & Love', color: 'from-pink-400 to-pink-600', icon: Heart },
+  { id: 3, name: 'Career & Purpose', color: 'from-blue-400 to-blue-600', icon: Target },
+  { id: 4, name: 'Wealth & Abundance', color: 'from-green-400 to-green-600', icon: DollarSign },
+  { id: 5, name: 'Home & Environment', color: 'from-yellow-400 to-yellow-600', icon: Home },
+  { id: 6, name: 'Learning & Growth', color: 'from-indigo-400 to-indigo-600', icon: BookOpen },
+  { id: 7, name: 'Creativity & Expression', color: 'from-purple-400 to-purple-600', icon: Palette },
+  { id: 8, name: 'Spirituality & Inner Peace', color: 'from-cyan-400 to-cyan-600', icon: Sparkles },
+  { id: 9, name: 'Adventure & Travel', color: 'from-orange-400 to-orange-600', icon: Plane },
+  { id: 10, name: 'Community & Service', color: 'from-teal-400 to-teal-600', icon: Users },
+  { id: 11, name: 'Joy & Fun', color: 'from-rose-400 to-rose-600', icon: PartyPopper },
+  { id: 12, name: 'Wisdom & Intuition', color: 'from-violet-400 to-violet-600', icon: Brain }
 ]
 
 export default function WheelOfLife() {
@@ -168,14 +168,14 @@ export default function WheelOfLife() {
           const segmentData = segments[area.id] || { text: '', images: [] }
           
           return (
-            <div
-              key={area.id}
-              className={`goal-card bg-gradient-to-br ${area.color} rounded-xl p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105`}
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <span className="text-2xl">{area.icon}</span>
-                <h3 className="text-lg font-semibold">{area.name}</h3>
-              </div>
+                         <div
+               key={area.id}
+               className={`goal-card bg-gradient-to-br ${area.color} rounded-xl p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105`}
+             >
+               <div className="flex items-center gap-3 mb-4">
+                 <area.icon size={24} className="text-white" />
+                 <h3 className="text-lg font-semibold">{area.name}</h3>
+               </div>
               
               {segmentData.text && (
                 <div className="text-sm mb-4 p-3 bg-white/20 rounded-lg">
