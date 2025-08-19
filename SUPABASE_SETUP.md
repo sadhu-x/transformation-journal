@@ -249,3 +249,52 @@ If you encounter issues:
 2. Verify your environment variables
 3. Check the browser console for errors
 4. Ensure all SQL commands were executed successfully 
+
+# Supabase Authentication Setup
+
+## Fixing Confirmation Link URLs
+
+If your email confirmation links are pointing to `localhost:3000` instead of your production domain, follow these steps:
+
+### 1. Update Supabase Dashboard Settings
+
+1. Go to [Supabase Dashboard](https://supabase.com/dashboard)
+2. Select your project
+3. Navigate to **Authentication** → **Settings** → **URL Configuration**
+4. Update the **Site URL** from `http://localhost:3000` to `https://transformation-journal.vercel.app`
+5. Save the changes
+
+### 2. Environment Variables
+
+Create a `.env.local` file in your project root with:
+
+```bash
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# Site URL for authentication redirects
+NEXT_PUBLIC_SITE_URL=https://transformation-journal.vercel.app
+```
+
+### 3. Vercel Environment Variables
+
+Make sure to add these environment variables to your Vercel project:
+
+1. Go to your Vercel dashboard
+2. Select your project
+3. Go to **Settings** → **Environment Variables**
+4. Add the same variables as above
+
+### 4. Test the Fix
+
+After updating the settings:
+1. Try signing up again
+2. Check that the confirmation email contains the correct production URL
+3. The link should point to `https://transformation-journal.vercel.app`
+
+## Important Notes
+
+- The Site URL in Supabase must match your production domain exactly
+- Environment variables in Vercel should be set for all environments (Production, Preview, Development)
+- Changes to Supabase settings may take a few minutes to propagate 
