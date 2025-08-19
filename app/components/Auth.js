@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { Mail, Lock, Eye, EyeOff, LogIn, UserPlus } from 'lucide-react'
 import TekneIcon from './TekneIcon'
@@ -12,8 +12,6 @@ export default function Auth({ onAuthChange }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const passwordRef = useRef(null)
-  const emailRef = useRef(null)
 
   const handleAuth = async (e) => {
     e.preventDefault()
@@ -47,31 +45,6 @@ export default function Auth({ onAuthChange }) {
     }
   }
 
-  // Auto-authenticate when password is auto-filled
-  useEffect(() => {
-    const checkAutoFill = () => {
-      if (passwordRef.current && emailRef.current) {
-        // Check if both email and password fields have values (auto-filled)
-        if (emailRef.current.value && passwordRef.current.value && !loading) {
-          // Small delay to ensure auto-fill is complete
-          setTimeout(() => {
-            if (emailRef.current.value && passwordRef.current.value) {
-              setEmail(emailRef.current.value)
-              setPassword(passwordRef.current.value)
-              handleAuth({ preventDefault: () => {} })
-            }
-          }, 100)
-        }
-      }
-    }
-
-    // Check for auto-fill on mount and after a short delay
-    checkAutoFill()
-    const timer = setTimeout(checkAutoFill, 500)
-
-    return () => clearTimeout(timer)
-  }, [loading])
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
       <div className="max-w-md w-full space-y-8">
@@ -99,7 +72,6 @@ export default function Auth({ onAuthChange }) {
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input
-                  ref={emailRef}
                   id="email"
                   name="email"
                   type="email"
@@ -119,7 +91,6 @@ export default function Auth({ onAuthChange }) {
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input
-                  ref={passwordRef}
                   id="password"
                   name="password"
                   type={showPassword ? 'text' : 'password'}
