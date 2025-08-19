@@ -262,7 +262,12 @@ If your email confirmation links are pointing to `localhost:3000` instead of you
 2. Select your project
 3. Navigate to **Authentication** → **Settings** → **URL Configuration**
 4. Update the **Site URL** from `http://localhost:3000` to `https://transformation-journal.vercel.app`
-5. Save the changes
+5. **Add Redirect URLs**:
+   - `https://transformation-journal.vercel.app/auth/callback`
+   - `https://transformation-journal.vercel.app`
+   - `http://localhost:3000/auth/callback` (for local development)
+   - `http://localhost:3000` (for local development)
+6. Save the changes
 
 ### 2. Environment Variables
 
@@ -292,9 +297,12 @@ After updating the settings:
 1. Try signing up again
 2. Check that the confirmation email contains the correct production URL
 3. The link should point to `https://transformation-journal.vercel.app`
+4. Test signing in with unconfirmed emails - should show clear error message
 
 ## Important Notes
 
 - The Site URL in Supabase must match your production domain exactly
+- **Redirect URLs are crucial** for proper authentication flow
 - Environment variables in Vercel should be set for all environments (Production, Preview, Development)
-- Changes to Supabase settings may take a few minutes to propagate 
+- Changes to Supabase settings may take a few minutes to propagate
+- Unconfirmed emails will now show a clear error message instead of causing infinite refresh 

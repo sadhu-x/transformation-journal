@@ -33,7 +33,17 @@ export default function Auth({ onAuthChange }) {
           email,
           password,
         })
-        if (error) throw error
+        if (error) {
+          // Handle specific error cases
+          if (error.message.includes('Email not confirmed')) {
+            setError('Please check your email and click the confirmation link before signing in.')
+          } else if (error.message.includes('Invalid login credentials')) {
+            setError('Invalid email or password. Please try again.')
+          } else {
+            setError(error.message)
+          }
+          return // Don't proceed with auth change for errors
+        }
         if (data.user) {
           onAuthChange(data.user)
         }
