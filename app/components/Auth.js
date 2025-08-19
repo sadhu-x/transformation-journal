@@ -12,11 +12,14 @@ export default function Auth({ onAuthChange }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [showResendButton, setShowResendButton] = useState(false)
+  const [resendLoading, setResendLoading] = useState(false)
 
   const handleAuth = async (e) => {
     e.preventDefault()
     setLoading(true)
     setError('')
+    setShowResendButton(false)
 
     try {
       if (isSignUp) {
@@ -27,6 +30,7 @@ export default function Auth({ onAuthChange }) {
         if (error) throw error
         if (data.user) {
           setError('Check your email for the confirmation link!')
+          setShowResendButton(true)
         }
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({
@@ -37,6 +41,7 @@ export default function Auth({ onAuthChange }) {
           // Handle specific error cases
           if (error.message.includes('Email not confirmed')) {
             setError('Please check your email and click the confirmation link before signing in.')
+            setShowResendButton(true)
           } else if (error.message.includes('Invalid login credentials')) {
             setError('Invalid email or password. Please try again.')
           } else {
@@ -52,6 +57,34 @@ export default function Auth({ onAuthChange }) {
       setError(error.message)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleResendConfirmation = async () => {
+    if (!email) {
+      setError('Please enter your email address first.')
+      return
+    }
+
+    setResendLoading(true)
+    setError('')
+
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email,
+      })
+
+      if (error) {
+        setError(error.message)
+      } else {
+        setError('Confirmation email sent! Please check your inbox.')
+        setShowResendButton(false)
+      }
+    } catch (error) {
+      setError('Failed to resend confirmation email. Please try again.')
+    } finally {
+      setResendLoading(false)
     }
   }
 
@@ -124,6 +157,15 @@ export default function Auth({ onAuthChange }) {
           {error && (
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-3">
               <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+              {showResendButton && (
+                <button
+                  onClick={handleResendConfirmation}
+                  disabled={resendLoading}
+                  className="mt-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 underline disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {resendLoading ? 'Sending...' : 'Resend confirmation email'}
+                </button>
+              )}
             </div>
           )}
 
