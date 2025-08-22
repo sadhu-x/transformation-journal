@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Brain, Lightbulb, Heart, Target, Clock, Sparkles, RefreshCw, MessageSquare, Send, ChevronDown, ChevronUp, Gem, HandHeart, Zap, Meditation, Users } from 'lucide-react'
+import { Brain, Lightbulb, Heart, Target, Clock, Sparkles, RefreshCw, MessageSquare, Send, ChevronDown, ChevronUp, Gem, HandHeart, Zap, Meditation, Users, Leaf, Apple, Flower } from 'lucide-react'
 
 export default function AIAnalysis({ entry, onRefresh, onUpdateEntry }) {
   const [isLoading, setIsLoading] = useState(false)
@@ -116,6 +116,18 @@ export default function AIAnalysis({ entry, onRefresh, onUpdateEntry }) {
         return <Meditation size={14} className="text-green-500" />
       case 'service':
         return <Users size={14} className="text-orange-500" />
+      case 'mudras':
+        return <HandHeart size={14} className="text-pink-500" />
+      case 'pranayama':
+        return <Zap size={14} className="text-cyan-500" />
+      case 'herbs':
+        return <Leaf size={14} className="text-emerald-500" />
+      case 'food':
+        return <Apple size={14} className="text-red-500" />
+      case 'aromatherapy':
+        return <Flower size={14} className="text-indigo-500" />
+      case 'yoga':
+        return <Meditation size={14} className="text-teal-500" />
       default:
         return <Target size={14} className="text-gray-500" />
     }
@@ -134,6 +146,18 @@ export default function AIAnalysis({ entry, onRefresh, onUpdateEntry }) {
         return 'bg-green-100 text-green-700 dark:bg-green-800 dark:text-green-300'
       case 'service':
         return 'bg-orange-100 text-orange-700 dark:bg-orange-800 dark:text-orange-300'
+      case 'mudras':
+        return 'bg-pink-100 text-pink-700 dark:bg-pink-800 dark:text-pink-300'
+      case 'pranayama':
+        return 'bg-cyan-100 text-cyan-700 dark:bg-cyan-800 dark:text-cyan-300'
+      case 'herbs':
+        return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-800 dark:text-emerald-300'
+      case 'food':
+        return 'bg-red-100 text-red-700 dark:bg-red-800 dark:text-red-300'
+      case 'aromatherapy':
+        return 'bg-indigo-100 text-indigo-700 dark:bg-indigo-800 dark:text-indigo-300'
+      case 'yoga':
+        return 'bg-teal-100 text-teal-700 dark:bg-teal-800 dark:text-teal-300'
       default:
         return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
     }
