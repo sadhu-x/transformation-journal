@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Brain, Lightbulb, Heart, Target, Clock, Sparkles, RefreshCw, MessageSquare, Send, ChevronDown, ChevronUp } from 'lucide-react'
+import { Brain, Lightbulb, Heart, Target, Clock, Sparkles, RefreshCw, MessageSquare, Send, ChevronDown, ChevronUp, Gem, HandHeart, Zap, Meditation, Users } from 'lucide-react'
 
 export default function AIAnalysis({ entry, onRefresh, onUpdateEntry }) {
   const [isLoading, setIsLoading] = useState(false)
@@ -100,6 +100,42 @@ export default function AIAnalysis({ entry, onRefresh, onUpdateEntry }) {
       console.error('❌ Error in deep dive analysis:', error)
     } finally {
       setIsSubmittingResponse(prev => ({ ...prev, [promptId]: false }))
+    }
+  }
+
+  // Get icon for remedy category
+  const getRemedyIcon = (category) => {
+    switch (category?.toLowerCase()) {
+      case 'mantras':
+        return <Sparkles size={14} className="text-purple-500" />
+      case 'gemstones':
+        return <Gem size={14} className="text-blue-500" />
+      case 'acupressure':
+        return <Zap size={14} className="text-yellow-500" />
+      case 'meditations':
+        return <Meditation size={14} className="text-green-500" />
+      case 'service':
+        return <Users size={14} className="text-orange-500" />
+      default:
+        return <Target size={14} className="text-gray-500" />
+    }
+  }
+
+  // Get color for remedy category
+  const getRemedyColor = (category) => {
+    switch (category?.toLowerCase()) {
+      case 'mantras':
+        return 'bg-purple-100 text-purple-700 dark:bg-purple-800 dark:text-purple-300'
+      case 'gemstones':
+        return 'bg-blue-100 text-blue-700 dark:bg-blue-800 dark:text-blue-300'
+      case 'acupressure':
+        return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-800 dark:text-yellow-300'
+      case 'meditations':
+        return 'bg-green-100 text-green-700 dark:bg-green-800 dark:text-green-300'
+      case 'service':
+        return 'bg-orange-100 text-orange-700 dark:bg-orange-800 dark:text-orange-300'
+      default:
+        return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
     }
   }
 
@@ -267,7 +303,7 @@ export default function AIAnalysis({ entry, onRefresh, onUpdateEntry }) {
         <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
           <h4 className="font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
             <Target size={16} className="text-green-500" />
-            Suggested Practices
+            Suggested Remedies & Practices
           </h4>
           <div className="space-y-3">
             {entry.ai_remedies.map((remedy, index) => (
@@ -297,7 +333,8 @@ export default function AIAnalysis({ entry, onRefresh, onUpdateEntry }) {
                 </p>
                                     <div className="mt-2 flex gap-2">
                       {remedy.category && (
-                        <span className="px-2 py-1 bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 text-xs rounded-full">
+                        <span className={`px-2 py-1 text-xs rounded-full flex items-center gap-1 ${getRemedyColor(remedy.category)}`}>
+                          {getRemedyIcon(remedy.category)}
                           {remedy.category}
                         </span>
                       )}
