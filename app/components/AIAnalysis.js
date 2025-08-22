@@ -1,10 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { Brain, Lightbulb, Heart, Target, Clock, Sparkles, RefreshCw } from 'lucide-react'
+import { Brain, Lightbulb, Heart, Target, Clock, Sparkles, RefreshCw, MessageSquare, Send, ChevronDown, ChevronUp } from 'lucide-react'
 
-export default function AIAnalysis({ entry, onRefresh }) {
+export default function AIAnalysis({ entry, onRefresh, onUpdateEntry }) {
   const [isLoading, setIsLoading] = useState(false)
+  const [expandedPrompts, setExpandedPrompts] = useState({})
+  const [responses, setResponses] = useState({})
+  const [isSubmittingResponse, setIsSubmittingResponse] = useState({})
 
   // Check if entry has AI analysis
   const hasAnalysis = entry?.ai_analysis && Object.keys(entry.ai_analysis).length > 0
@@ -23,6 +26,80 @@ export default function AIAnalysis({ entry, onRefresh }) {
       console.error('Error refreshing analysis:', error)
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const togglePromptExpansion = (promptId) => {
+    setExpandedPrompts(prev => ({
+      ...prev,
+      [promptId]: !prev[promptId]
+    }))
+  }
+
+  const handleResponseChange = (promptId, value) => {
+    setResponses(prev => ({
+      ...prev,
+      [promptId]: value
+    }))
+  }
+
+  const handleSubmitResponse = async (promptId) => {
+    const response = responses[promptId]
+    if (!response || !response.trim()) return
+
+    setIsSubmittingResponse(prev => ({ ...prev, [promptId]: true }))
+    
+    try {
+      // Update the prompt with user response
+      const updatedPrompts = entry.ai_prompts.map(prompt => {
+        if (prompt.id === promptId) {
+          return {
+            ...prompt,
+            user_response: response,
+            response_timestamp: new Date().toISOString()
+          }
+        }
+        return prompt
+      })
+
+      // Update the entry with the new prompt data
+      if (onUpdateEntry) {
+        await onUpdateEntry({
+          ...entry,
+          ai_prompts: updatedPrompts
+        })
+      }
+
+      // Clear the response input
+      setResponses(prev => {
+        const newResponses = { ...prev }
+        delete newResponses[promptId]
+        return newResponses
+      })
+
+      console.log('✅ Response submitted for prompt:', promptId)
+    } catch (error) {
+      console.error('❌ Error submitting response:', error)
+    } finally {
+      setIsSubmittingResponse(prev => ({ ...prev, [promptId]: false }))
+    }
+  }
+
+  const handleDeepDive = async (promptId) => {
+    const prompt = entry.ai_prompts.find(p => p.id === promptId)
+    if (!prompt || !prompt.user_response) return
+
+    setIsSubmittingResponse(prev => ({ ...prev, [promptId]: true }))
+    
+    try {
+      // Trigger AI analysis of the response
+      if (onRefresh) {
+        await onRefresh(entry.content, entry.id, promptId, prompt.user_response)
+      }
+    } catch (error) {
+      console.error('❌ Error in deep dive analysis:', error)
+    } finally {
+      setIsSubmittingResponse(prev => ({ ...prev, [promptId]: false }))
     }
   }
 
@@ -241,39 +318,157 @@ export default function AIAnalysis({ entry, onRefresh }) {
         <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
           <h4 className="font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
             <Lightbulb size={16} className="text-yellow-500" />
-            Reflection Questions
+            Interactive Reflection Questions
           </h4>
           <div className="space-y-3">
-            {entry.ai_prompts.map((prompt, index) => (
-              <div key={index} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
-                <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
-                  {prompt.question}
-                </p>
-                <div className="flex items-center gap-2 flex-wrap">
-                  {prompt.category && (
-                    <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs rounded-full">
-                      {prompt.category}
-                    </span>
-                  )}
-                  {prompt.domain && (
-                    <span className="px-2 py-1 bg-purple-100 dark:bg-purple-800 text-purple-700 dark:text-purple-300 text-xs rounded-full">
-                      {prompt.domain}
-                    </span>
-                  )}
-                  {prompt.difficulty && (
-                    <span className={`px-2 py-1 text-xs rounded-full ${
-                      prompt.difficulty === 'challenging'
-                        ? 'bg-red-100 text-red-700 dark:bg-red-800 dark:text-red-300'
-                        : prompt.difficulty === 'medium'
-                        ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-800 dark:text-yellow-300'
-                        : 'bg-green-100 text-green-700 dark:bg-green-800 dark:text-green-300'
-                    }`}>
-                      {prompt.difficulty}
-                    </span>
+            {entry.ai_prompts.map((prompt, index) => {
+              const promptId = prompt.id || `prompt_${index}`
+              const isExpanded = expandedPrompts[promptId]
+              const hasResponse = prompt.user_response
+              const hasFollowup = prompt.ai_followup
+              
+              return (
+                <div key={promptId} className="bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                  {/* Prompt Header */}
+                  <div className="p-3">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                          {prompt.question}
+                        </p>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {prompt.category && (
+                            <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs rounded-full">
+                              {prompt.category}
+                            </span>
+                          )}
+                          {prompt.domain && (
+                            <span className="px-2 py-1 bg-purple-100 dark:bg-purple-800 text-purple-700 dark:text-purple-300 text-xs rounded-full">
+                              {prompt.domain}
+                            </span>
+                          )}
+                          {prompt.difficulty && (
+                            <span className={`px-2 py-1 text-xs rounded-full ${
+                              prompt.difficulty === 'challenging'
+                                ? 'bg-red-100 text-red-700 dark:bg-red-800 dark:text-red-300'
+                                : prompt.difficulty === 'medium'
+                                ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-800 dark:text-yellow-300'
+                                : 'bg-green-100 text-green-700 dark:bg-green-800 dark:text-green-300'
+                            }`}>
+                              {prompt.difficulty}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => togglePromptExpansion(promptId)}
+                        className="ml-2 p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                      >
+                        {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Expanded Content */}
+                  {isExpanded && (
+                    <div className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700">
+                      {/* User Response Section */}
+                      {hasResponse ? (
+                        <div className="p-3 space-y-3">
+                          <div className="flex items-center gap-2">
+                            <MessageSquare size={14} className="text-blue-500" />
+                            <span className="text-sm font-medium text-gray-900 dark:text-white">Your Response</span>
+                            {prompt.response_timestamp && (
+                              <span className="text-xs text-gray-500 dark:text-gray-400">
+                                {new Date(prompt.response_timestamp).toLocaleString()}
+                              </span>
+                            )}
+                          </div>
+                          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
+                            <p className="text-sm text-gray-700 dark:text-gray-300">
+                              {prompt.user_response}
+                            </p>
+                          </div>
+                          
+                          {/* AI Followup */}
+                          {hasFollowup && (
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-2">
+                                <Brain size={14} className="text-purple-500" />
+                                <span className="text-sm font-medium text-gray-900 dark:text-white">AI Deep Dive</span>
+                              </div>
+                              <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3">
+                                <p className="text-sm text-gray-700 dark:text-gray-300">
+                                  {prompt.ai_followup}
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Deep Dive Button */}
+                          {!hasFollowup && (
+                            <button
+                              type="button"
+                              onClick={() => handleDeepDive(promptId)}
+                              disabled={isSubmittingResponse[promptId]}
+                              className="flex items-center gap-2 px-3 py-2 text-sm bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            >
+                              {isSubmittingResponse[promptId] ? (
+                                <>
+                                  <RefreshCw size={14} className="animate-spin" />
+                                  Analyzing...
+                                </>
+                              ) : (
+                                <>
+                                  <Brain size={14} />
+                                  Deep Dive Analysis
+                                </>
+                              )}
+                            </button>
+                          )}
+                        </div>
+                      ) : (
+                        /* Response Input Section */
+                        <div className="p-3 space-y-3">
+                          <div className="flex items-center gap-2">
+                            <MessageSquare size={14} className="text-blue-500" />
+                            <span className="text-sm font-medium text-gray-900 dark:text-white">Your Response</span>
+                          </div>
+                          <textarea
+                            value={responses[promptId] || ''}
+                            onChange={(e) => handleResponseChange(promptId, e.target.value)}
+                            placeholder="Share your thoughts, insights, or experiences related to this question..."
+                            rows={3}
+                            className="w-full p-3 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 resize-none"
+                          />
+                          <div className="flex justify-end">
+                            <button
+                              type="button"
+                              onClick={() => handleSubmitResponse(promptId)}
+                              disabled={!responses[promptId]?.trim() || isSubmittingResponse[promptId]}
+                              className="flex items-center gap-2 px-3 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            >
+                              {isSubmittingResponse[promptId] ? (
+                                <>
+                                  <RefreshCw size={14} className="animate-spin" />
+                                  Saving...
+                                </>
+                              ) : (
+                                <>
+                                  <Send size={14} />
+                                  Submit Response
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       )}

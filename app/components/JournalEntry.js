@@ -312,7 +312,7 @@ const MarkdownEditor = ({ value, onChange, placeholder, onFocus }) => {
   )
 }
 
-export default function JournalEntry({ onAddEntry, onTriggerAIAnalysis, onOpenImageModal, imageComments, onUpdateImageComment, editingEntry, onClose, onUpdateEntryData, currentEntryIndex, totalEntries, onNavigateNext, onNavigatePrevious }) {
+export default function JournalEntry({ onAddEntry, onTriggerAIAnalysis, onOpenImageModal, imageComments, onUpdateImageComment, editingEntry, onClose, onUpdateEntryData, currentEntryIndex, totalEntries, onNavigateNext, onNavigatePrevious, onUpdateEntry }) {
   console.log('JournalEntry received editingEntry:', editingEntry) // Debug log
   const [entry, setEntry] = useState({
     content: '',
@@ -853,6 +853,7 @@ export default function JournalEntry({ onAddEntry, onTriggerAIAnalysis, onOpenIm
                     console.error('Failed to re-analyze entry:', error)
                   }
                 }}
+                onUpdateEntry={onUpdateEntry}
               />
             </div>
           )}

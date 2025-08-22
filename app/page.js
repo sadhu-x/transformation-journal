@@ -474,6 +474,7 @@ export default function Home() {
                   totalEntries={entries.length}
                   onNavigateNext={navigateToNextEntry}
                   onNavigatePrevious={navigateToPreviousEntry}
+                  onUpdateEntry={updateEntry}
                 />
               </div>
             </div>
