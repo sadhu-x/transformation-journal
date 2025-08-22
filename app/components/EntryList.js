@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import { generateInstructionTemplate } from '../../lib/dataService'
 import { getVedicData, formatVedicData } from '../../lib/astronomy'
-import { Trash2, ChevronDown, ChevronUp, Image as ImageIcon, Link, ExternalLink, Copy } from 'lucide-react'
+import { Trash2, ChevronDown, ChevronUp, Image as ImageIcon, Link, ExternalLink, Copy, Brain } from 'lucide-react'
+import AIAnalysis from './AIAnalysis'
 
 const energyLevels = ['Depleted', 'Low', 'Moderate', 'Good', 'High', 'Peak', 'Transcendent']
 const clarityLevels = ['Foggy', 'Unclear', 'Somewhat Clear', 'Clear', 'Very Clear', 'Crystal Clear', 'Illuminated']
@@ -235,65 +236,29 @@ ${nonNegotiablesJson}
                         {formatDate(entry.timestamp)} {formatTime(entry.timestamp)}
                       </div>
                       <div className="font-medium">
-                        {entry.activity ? 
+                        {entry.content ? 
                           (() => {
-                            const plainText = stripMarkdown(entry.activity)
+                            const plainText = stripMarkdown(entry.content)
                             return plainText.length > 100 ? 
                               `${plainText.substring(0, 100)}...` : 
                               plainText
                           })()
                         : 
-                          'No activities recorded'
+                          'No content recorded'
                         }
                       </div>
-                      {entry.aiResponse && (
-                        <div className="text-sm text-gray-600 dark:text-gray-300 italic">
-                          AI: {entry.aiResponse.length > 80 ? 
-                            stripMarkdown(entry.aiResponse.substring(0, 80) + '...') : 
-                            stripMarkdown(entry.aiResponse)
-                          }
+                      {/* AI Analysis Indicator */}
+                      {(entry.ai_analysis || entry.ai_remedies || entry.ai_prompts) && (
+                        <div className="flex items-center gap-1 text-sm text-purple-600 dark:text-purple-400">
+                          <Brain size={14} />
+                          <span>AI analyzed</span>
                         </div>
                       )}
-                      <div className="flex gap-2">
-                        <span 
-                          className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-300"
-                          onMouseEnter={(e) => handleTooltipEnter('discipline', e)}
-                          onMouseLeave={() => handleTooltipLeave('discipline')}
-                        >
-                          {getScaleLabel(entry.discipline, 'discipline')}
-                        </span>
-                        <span 
-                          className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900/20 dark:text-indigo-300"
-                          onMouseEnter={(e) => handleTooltipEnter('surrender', e)}
-                          onMouseLeave={() => handleTooltipLeave('surrender')}
-                        >
-                          {getScaleLabel(entry.surrender, 'surrender')}
-                        </span>
-                      </div>
-                      {showTooltip.discipline && (
-                        <div
-                          className="absolute z-50 px-3 py-2 text-sm text-white bg-gray-900 rounded-lg shadow-lg whitespace-nowrap"
-                          style={{
-                            left: '50%',
-                            top: '25px',
-                            transform: 'translateX(-50%)'
-                          }}
-                        >
-                          {disciplineTooltips[entry.discipline]}
-                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-transparent border-b-gray-900"></div>
-                        </div>
-                      )}
-                      {showTooltip.surrender && (
-                        <div
-                          className="absolute z-50 px-3 py-2 text-sm text-white bg-gray-900 rounded-lg shadow-lg whitespace-nowrap"
-                          style={{
-                            left: '50%',
-                            top: '25px',
-                            transform: 'translateX(-50%)'
-                          }}
-                        >
-                          {surrenderTooltips[entry.surrender]}
-                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-transparent border-b-gray-900"></div>
+                      {/* Attachments Indicator */}
+                      {entry.attachments && entry.attachments.length > 0 && (
+                        <div className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
+                          <ImageIcon size={14} />
+                          <span>{entry.attachments.length} attachment{entry.attachments.length !== 1 ? 's' : ''}</span>
                         </div>
                       )}
                     </div>
