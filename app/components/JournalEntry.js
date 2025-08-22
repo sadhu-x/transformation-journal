@@ -6,6 +6,7 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { supabase } from '../../lib/supabase'
 import { Plus, Clock, ChevronDown, Paperclip, Link, X, Image as ImageIcon, FileText, Copy, ChevronLeft, ChevronRight, Upload, Bold, Italic, List, ListOrdered, Heading1, Heading2, Quote, Code, Link as LinkIcon, Edit3 } from 'lucide-react'
+import AIAnalysis from './AIAnalysis'
 
 // Markdown Editor Component
 const MarkdownEditor = ({ value, onChange, placeholder, onFocus }) => {
@@ -645,6 +646,31 @@ export default function JournalEntry({ onAddEntry, onOpenImageModal, imageCommen
               onChange={(value) => setEntry({...entry, content: value})}
               placeholder="Write freely about your day, thoughts, feelings, experiences, insights, or anything that's on your mind..."
             />
+            
+            {/* AI Analysis */}
+            {editingEntry && (editingEntry.ai_analysis || editingEntry.ai_remedies || editingEntry.ai_prompts) && (
+              <AIAnalysis 
+                entry={editingEntry}
+                onRefresh={async () => {
+                  // Re-analyze the current entry
+                  try {
+                    const { analyzeEntryWithClaude } = await import('../../lib/dataService')
+                    const result = await analyzeEntryWithClaude(editingEntry.content, editingEntry.id)
+                    if (result.success) {
+                      // Update the editing entry with new analysis
+                      setEditingEntry(prev => ({
+                        ...prev,
+                        ai_analysis: result.analysis,
+                        ai_remedies: result.remedies,
+                        ai_prompts: result.prompts
+                      }))
+                    }
+                  } catch (error) {
+                    console.error('Failed to re-analyze entry:', error)
+                  }
+                }}
+              />
+            )}
           </div>
 
           {/* Attachments Panel */}

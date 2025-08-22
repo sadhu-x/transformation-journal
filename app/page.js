@@ -166,16 +166,11 @@ export default function Home() {
       } else {
         // Add new entry
         console.log('Adding new entry') // Debug log
-        const newEntry = {
-          ...entry,
-          id: Date.now(),
-          timestamp: new Date().toISOString()
-        }
         
-        // Add to database
-        const savedEntry = await addEntryToDB(newEntry)
+        // Add to database (this will trigger Claude analysis if content is substantial)
+        const savedEntry = await addEntryToDB(entry)
         
-        // Update local state
+        // Update local state with the saved entry (which may now include AI analysis)
         setEntries(prev => [savedEntry, ...prev])
       }
       
