@@ -15,11 +15,16 @@ export default function AIAnalysis({ entry, onRefresh, onUpdateEntry }) {
   const hasPrompts = entry?.ai_prompts && entry.ai_prompts.length > 0
   
   // Check for new comprehensive analysis sections
-  const hasExecutiveSummary = entry?.ai_analysis?.executive_summary
-  const hasDetailedAnalysis = entry?.ai_analysis?.detailed_analysis
-  const hasVedicRemedies = entry?.ai_analysis?.vedic_remedies
-  const hasDailyChallenges = entry?.ai_analysis?.daily_challenges
-  const hasPatternRecognition = entry?.ai_analysis?.pattern_recognition
+  const hasExecutiveSummary = entry?.ai_analysis?.executive_summary && 
+    (entry.ai_analysis.executive_summary.key_insights || entry.ai_analysis.executive_summary.integrated_mastery || entry.ai_analysis.executive_summary.flow_architecture)
+  const hasDetailedAnalysis = entry?.ai_analysis?.detailed_analysis && 
+    Object.keys(entry.ai_analysis.detailed_analysis).some(key => entry.ai_analysis.detailed_analysis[key])
+  const hasVedicRemedies = entry?.ai_analysis?.vedic_remedies && 
+    Object.keys(entry.ai_analysis.vedic_remedies).some(key => entry.ai_analysis.vedic_remedies[key] && entry.ai_analysis.vedic_remedies[key].length > 0)
+  const hasDailyChallenges = entry?.ai_analysis?.daily_challenges && 
+    Object.keys(entry.ai_analysis.daily_challenges).some(key => entry.ai_analysis.daily_challenges[key] && entry.ai_analysis.daily_challenges[key].length > 0)
+  const hasPatternRecognition = entry?.ai_analysis?.pattern_recognition && 
+    (entry.ai_analysis.pattern_recognition.primary_pattern || entry.ai_analysis.pattern_recognition.investigation_questions)
 
   const handleRefresh = async () => {
     if (!entry?.content) return
@@ -171,7 +176,22 @@ export default function AIAnalysis({ entry, onRefresh, onUpdateEntry }) {
   }
 
   if (!hasAnalysis && !hasRemedies && !hasPrompts && !hasExecutiveSummary && !hasDetailedAnalysis && !hasVedicRemedies && !hasDailyChallenges && !hasPatternRecognition) {
-    return null
+    return (
+      <div className="text-center py-8">
+        <Brain size={48} className="mx-auto mb-4 text-gray-400 dark:text-gray-500" />
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+          No AI Analysis Available
+        </h3>
+        <p className="text-gray-600 dark:text-gray-400 mb-4">
+          Create journal entries with substantial content (50+ characters) and run AI analysis to see insights.
+        </p>
+        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 max-w-md mx-auto">
+          <p className="text-sm text-blue-700 dark:text-blue-300">
+            💡 <strong>Tip:</strong> Write about your thoughts, feelings, experiences, or challenges to get personalized insights and suggestions.
+          </p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -198,17 +218,19 @@ export default function AIAnalysis({ entry, onRefresh, onUpdateEntry }) {
       {/* Analysis Summary */}
       {hasAnalysis && (
         <div className="space-y-4">
-          <div className="flex items-start gap-3">
-            <Heart size={16} className="text-red-500 mt-1 flex-shrink-0" />
-            <div className="flex-1">
-              <h4 className="font-medium text-gray-900 dark:text-white mb-1">
-                Emotional State
-              </h4>
-              <p className="text-sm text-gray-700 dark:text-gray-300">
-                {entry.ai_analysis.emotional_state}
-              </p>
+          {entry.ai_analysis.emotional_state && entry.ai_analysis.emotional_state !== 'Unable to analyze' && (
+            <div className="flex items-start gap-3">
+              <Heart size={16} className="text-red-500 mt-1 flex-shrink-0" />
+              <div className="flex-1">
+                <h4 className="font-medium text-gray-900 dark:text-white mb-1">
+                  Emotional State
+                </h4>
+                <p className="text-sm text-gray-700 dark:text-gray-300">
+                  {entry.ai_analysis.emotional_state}
+                </p>
+              </div>
             </div>
-          </div>
+          )}
 
           {entry.ai_analysis.key_themes && entry.ai_analysis.key_themes.length > 0 && (
             <div>
