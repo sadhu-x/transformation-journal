@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { getEntries, addEntry as addEntryToDB, updateEntry as updateEntryToDB, deleteEntry as deleteEntryFromDB, getLocalEntries, saveLocalEntries, getNonNegotiables, addNonNegotiable, updateNonNegotiable, deleteNonNegotiable, saveLocalNonNegotiables } from '../lib/dataService'
+import { getEntries, saveEntry, triggerAIAnalysis, updateEntry as updateEntryToDB, deleteEntry as deleteEntryFromDB, getLocalEntries, saveLocalEntries, getNonNegotiables, addNonNegotiable, updateNonNegotiable, deleteNonNegotiable, saveLocalNonNegotiables } from '../lib/dataService'
 import JournalEntry from './components/JournalEntry'
 import EntryList from './components/EntryList'
 import NonNegotiables from './components/NonNegotiables'
@@ -154,38 +154,7 @@ export default function Home() {
         // Update in database
         await updateEntryToDB(editingEntry.id, updatedEntry)
         
-        // Trigger Claude analysis for substantial content updates
-        if (entry.content && entry.content.trim().length > 50) {
-          try {
-            console.log('🤖 Triggering Claude analysis for updated entry...')
-            const { analyzeEntryWithClaude } = await import('../lib/dataService')
-            const analysisResult = await analyzeEntryWithClaude(entry.content, editingEntry.id)
-            
-            if (analysisResult.success) {
-              // Update the entry with AI analysis results
-              await updateEntryToDB(editingEntry.id, {
-                ai_analysis: analysisResult.analysis,
-                ai_remedies: analysisResult.remedies,
-                ai_prompts: analysisResult.prompts
-              })
-              console.log('✅ Claude analysis completed and saved for updated entry')
-              
-              // Update local state with AI analysis
-              const entryWithAI = {
-                ...updatedEntry,
-                ai_analysis: analysisResult.analysis,
-                ai_remedies: analysisResult.remedies,
-                ai_prompts: analysisResult.prompts
-              }
-              setEntries(prev => prev.map(e => e.id === editingEntry.id ? entryWithAI : e))
-              return // Exit early since we already updated the state
-            }
-          } catch (analysisError) {
-            console.warn('⚠️ Claude analysis failed for updated entry, but entry was saved:', analysisError.message)
-          }
-        }
-        
-        // Update local state (only if no AI analysis was triggered above)
+        // Update local state
         setEntries(prev => prev.map(e => e.id === editingEntry.id ? updatedEntry : e))
         
         // Clear editing state
@@ -194,10 +163,10 @@ export default function Home() {
         // Add new entry
         console.log('Adding new entry') // Debug log
         
-        // Add to database (this will trigger Claude analysis if content is substantial)
-        const savedEntry = await addEntryToDB(entry)
+        // Save to database (without AI analysis)
+        const savedEntry = await saveEntry(entry)
         
-        // Update local state with the saved entry (which may now include AI analysis)
+        // Update local state with the saved entry
         setEntries(prev => [savedEntry, ...prev])
       }
       
@@ -227,6 +196,48 @@ export default function Home() {
       }
       setImageComments({})
       setShowJournalModal(false)
+    }
+  }
+
+  // Separate function for triggering AI analysis
+  const triggerAIAnalysisForEntry = async (entryId, content) => {
+    try {
+      console.log('🤖 Triggering AI analysis for entry:', entryId)
+      const analysisResult = await triggerAIAnalysis(entryId, content)
+      
+      if (analysisResult.success) {
+        // Update local state with AI analysis results
+        setEntries(prev => prev.map(e => {
+          if (e.id === entryId) {
+            return {
+              ...e,
+              ai_analysis: analysisResult.analysis,
+              ai_remedies: analysisResult.remedies,
+              ai_prompts: analysisResult.prompts
+            }
+          }
+          return e
+        }))
+        
+        // Update editing entry if it's currently open
+        if (editingEntry && editingEntry.id === entryId) {
+          setEditingEntry(prev => ({
+            ...prev,
+            ai_analysis: analysisResult.analysis,
+            ai_remedies: analysisResult.remedies,
+            ai_prompts: analysisResult.prompts
+          }))
+        }
+        
+        console.log('✅ AI analysis completed and state updated')
+        return analysisResult
+      } else {
+        console.error('❌ AI analysis failed:', analysisResult.error)
+        return analysisResult
+      }
+    } catch (error) {
+      console.error('❌ Error triggering AI analysis:', error)
+      return { success: false, error: error.message }
     }
   }
 
@@ -452,6 +463,7 @@ export default function Home() {
               <div className="flex-1 flex flex-col overflow-hidden">
                 <JournalEntry 
                   onAddEntry={addEntry} 
+                  onTriggerAIAnalysis={triggerAIAnalysisForEntry}
                   onOpenImageModal={openImageModal}
                   imageComments={imageComments}
                   onUpdateImageComment={updateImageComment}

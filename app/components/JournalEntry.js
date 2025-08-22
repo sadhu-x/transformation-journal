@@ -312,7 +312,7 @@ const MarkdownEditor = ({ value, onChange, placeholder, onFocus }) => {
   )
 }
 
-export default function JournalEntry({ onAddEntry, onOpenImageModal, imageComments, onUpdateImageComment, editingEntry, onClose, onUpdateEntryData, currentEntryIndex, totalEntries, onNavigateNext, onNavigatePrevious }) {
+export default function JournalEntry({ onAddEntry, onTriggerAIAnalysis, onOpenImageModal, imageComments, onUpdateImageComment, editingEntry, onClose, onUpdateEntryData, currentEntryIndex, totalEntries, onNavigateNext, onNavigatePrevious }) {
   console.log('JournalEntry received editingEntry:', editingEntry) // Debug log
   const [entry, setEntry] = useState({
     content: '',
@@ -542,6 +542,25 @@ export default function JournalEntry({ onAddEntry, onOpenImageModal, imageCommen
       resetEntry()
     } catch (error) {
       console.error('Error saving entry:', error)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleAIAnalysis = async () => {
+    if (!editingEntry || !editingEntry.id || !entry.content.trim()) {
+      console.warn('No entry to analyze or content is empty')
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      console.log('🤖 Triggering AI analysis for entry:', editingEntry.id)
+      if (onTriggerAIAnalysis) {
+        await onTriggerAIAnalysis(editingEntry.id, entry.content)
+      }
+    } catch (error) {
+      console.error('Error triggering AI analysis:', error)
     } finally {
       setIsSubmitting(false)
     }
@@ -855,19 +874,32 @@ export default function JournalEntry({ onAddEntry, onOpenImageModal, imageCommen
               <button
                 type="submit"
                 disabled={isSubmitting || !entry.content.trim()}
-                className="px-4 py-2 text-sm bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                className="px-4 py-2 text-sm bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                {isSubmitting ? (
-                  'Saving...'
-                ) : editingEntry && (editingEntry.ai_analysis || editingEntry.ai_remedies || editingEntry.ai_prompts) ? (
-                  <>
-                    <Brain size={16} />
-                    AI Analysis
-                  </>
-                ) : (
-                  'Save Entry'
-                )}
+                {isSubmitting ? 'Saving...' : 'Save Entry'}
               </button>
+              {editingEntry && editingEntry.id && entry.content.trim().length > 50 && (
+                <button
+                  type="button"
+                  onClick={handleAIAnalysis}
+                  disabled={isSubmitting || !entry.content.trim()}
+                  className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                >
+                  {isSubmitting ? (
+                    'Analyzing...'
+                  ) : editingEntry && (editingEntry.ai_analysis || editingEntry.ai_remedies || editingEntry.ai_prompts) ? (
+                    <>
+                      <Brain size={16} />
+                      Re-analyze
+                    </>
+                  ) : (
+                    <>
+                      <Brain size={16} />
+                      AI Analysis
+                    </>
+                  )}
+                </button>
+              )}
             </div>
           </div>
         </div>
