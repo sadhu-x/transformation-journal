@@ -28,12 +28,7 @@ export default function Home() {
   const handleTabChange = async (newTab) => {
     // If switching away from journal tab and we have unsaved entry data, save it
     if (activeTab === 'journal' && newTab !== 'journal' && currentEntryData && showJournalModal) {
-      const hasContent = currentEntryData.activity?.trim() || 
-                        currentEntryData.gratitude?.trim() || 
-                        currentEntryData.presence?.trim() || 
-                        currentEntryData.insights?.trim() || 
-                        currentEntryData.wishFulfilled?.trim() || 
-                        currentEntryData.aiResponse?.trim() ||
+      const hasContent = currentEntryData.content?.trim() || 
                         (currentEntryData.attachments && currentEntryData.attachments.length > 0)
       
       if (hasContent) {
@@ -297,17 +292,14 @@ export default function Home() {
     
     // Check if there's actual content to save
     if (dataToSave) {
-      const hasContent = dataToSave.activity?.trim() || 
-                        dataToSave.gratitude?.trim() || 
-                        dataToSave.presence?.trim() || 
-                        dataToSave.insights?.trim() || 
-                        dataToSave.wishFulfilled?.trim() || 
-                        dataToSave.aiResponse?.trim() ||
+      const hasContent = dataToSave.content?.trim() || 
                         (dataToSave.attachments && dataToSave.attachments.length > 0)
       
       if (hasContent) {
         try {
+          console.log('Auto-saving entry on close:', dataToSave)
           await addEntry(dataToSave)
+          console.log('✅ Entry auto-saved successfully on close')
         } catch (error) {
           console.error('Failed to save entry when closing modal:', error)
         }
