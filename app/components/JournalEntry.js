@@ -313,6 +313,7 @@ const MarkdownEditor = ({ value, onChange, placeholder, onFocus }) => {
 }
 
 export default function JournalEntry({ onAddEntry, onOpenImageModal, imageComments, onUpdateImageComment, editingEntry, onClose, onUpdateEntryData, currentEntryIndex, totalEntries, onNavigateNext, onNavigatePrevious }) {
+  console.log('JournalEntry received editingEntry:', editingEntry) // Debug log
   const [entry, setEntry] = useState({
     content: '',
     attachments: []
@@ -648,15 +649,15 @@ export default function JournalEntry({ onAddEntry, onOpenImageModal, imageCommen
             />
             
             {/* AI Analysis Debug */}
-            {editingEntry && (
-              <div className="p-2 bg-yellow-100 dark:bg-yellow-800 text-xs">
-                <strong>Debug:</strong> Entry ID: {editingEntry.id}, 
-                Has AI Analysis: {!!editingEntry.ai_analysis}, 
-                Has Remedies: {!!editingEntry.ai_remedies}, 
-                Has Prompts: {!!editingEntry.ai_prompts}
-                {editingEntry.ai_analysis && <div>Analysis: {JSON.stringify(editingEntry.ai_analysis, null, 2)}</div>}
-              </div>
-            )}
+            <div className="p-2 bg-yellow-100 dark:bg-yellow-800 text-xs">
+              <strong>Debug:</strong> 
+              editingEntry: {editingEntry ? 'exists' : 'null'}, 
+              {editingEntry && `ID: ${editingEntry.id}`}, 
+              Has AI Analysis: {editingEntry?.ai_analysis ? 'true' : 'false'}, 
+              Has Remedies: {editingEntry?.ai_remedies ? 'true' : 'false'}, 
+              Has Prompts: {editingEntry?.ai_prompts ? 'true' : 'false'}
+              {editingEntry?.ai_analysis && <div>Analysis: {JSON.stringify(editingEntry.ai_analysis, null, 2)}</div>}
+            </div>
             
             {/* AI Analysis */}
             {editingEntry && (editingEntry.ai_analysis || editingEntry.ai_remedies || editingEntry.ai_prompts) && (

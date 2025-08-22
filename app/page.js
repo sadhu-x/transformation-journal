@@ -268,6 +268,8 @@ export default function Home() {
     if (entry && entry.id) {
       // Refresh entry data from the latest state to ensure we have AI analysis
       const latestEntry = entries.find(e => e.id === entry.id)
+      console.log('Latest entry from state:', latestEntry) // Debug log
+      console.log('All entries:', entries) // Debug log
       setEditingEntry(latestEntry || entry)
       
       const index = entries.findIndex(e => e.id === entry.id)
