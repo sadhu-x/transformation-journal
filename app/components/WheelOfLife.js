@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Edit3, X, Target, Heart, DollarSign, Home, BookOpen, Palette, Sparkles, Plane, Users, PartyPopper, Brain, Activity } from 'lucide-react'
+import { Edit3, X, Target, Heart, DollarSign, Home, BookOpen, Palette, Sparkles, Plane, Users, Brain, Activity } from 'lucide-react'
 
 const LIFE_AREAS = [
   { id: 1, name: 'Health & Vitality', color: 'from-red-400 to-red-600', icon: Activity },
@@ -14,7 +14,7 @@ const LIFE_AREAS = [
   { id: 8, name: 'Spirituality & Inner Peace', color: 'from-cyan-400 to-cyan-600', icon: Sparkles },
   { id: 9, name: 'Adventure & Travel', color: 'from-orange-400 to-orange-600', icon: Plane },
   { id: 10, name: 'Community & Service', color: 'from-teal-400 to-teal-600', icon: Users },
-  { id: 11, name: 'Joy & Fun', color: 'from-rose-400 to-rose-600', icon: PartyPopper },
+  { id: 11, name: 'Joy & Fun', color: 'from-rose-400 to-rose-600', icon: Sparkles },
   { id: 12, name: 'Wisdom & Intuition', color: 'from-violet-400 to-violet-600', icon: Brain }
 ]
 
