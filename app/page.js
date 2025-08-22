@@ -158,7 +158,37 @@ export default function Home() {
         // Update in database
         await updateEntryToDB(editingEntry.id, updatedEntry)
         
-        // Update local state
+        // Trigger Claude analysis for substantial content updates
+        if (entry.content && entry.content.trim().length > 50) {
+          try {
+            console.log('🤖 Triggering Claude analysis for updated entry...')
+            const { analyzeEntryWithClaude } = await import('../lib/dataService')
+            const analysisResult = await analyzeEntryWithClaude(entry.content, editingEntry.id)
+            
+            if (analysisResult.success) {
+              // Update the entry with AI analysis results
+              await updateEntryToDB(editingEntry.id, {
+                ai_analysis: analysisResult.analysis,
+                ai_remedies: analysisResult.remedies,
+                ai_prompts: analysisResult.prompts
+              })
+              console.log('✅ Claude analysis completed and saved for updated entry')
+              
+              // Update local state with AI analysis
+              const entryWithAI = {
+                ...updatedEntry,
+                ai_analysis: analysisResult.analysis,
+                ai_remedies: analysisResult.remedies,
+                ai_prompts: analysisResult.prompts
+              }
+              setEntries(prev => prev.map(e => e.id === editingEntry.id ? entryWithAI : e))
+            }
+          } catch (analysisError) {
+            console.warn('⚠️ Claude analysis failed for updated entry, but entry was saved:', analysisError.message)
+          }
+        }
+        
+        // Update local state (if no AI analysis was triggered)
         setEntries(prev => prev.map(e => e.id === editingEntry.id ? updatedEntry : e))
         
         // Clear editing state
