@@ -182,13 +182,14 @@ export default function Home() {
                 ai_prompts: analysisResult.prompts
               }
               setEntries(prev => prev.map(e => e.id === editingEntry.id ? entryWithAI : e))
+              return // Exit early since we already updated the state
             }
           } catch (analysisError) {
             console.warn('⚠️ Claude analysis failed for updated entry, but entry was saved:', analysisError.message)
           }
         }
         
-        // Update local state (if no AI analysis was triggered)
+        // Update local state (only if no AI analysis was triggered above)
         setEntries(prev => prev.map(e => e.id === editingEntry.id ? updatedEntry : e))
         
         // Clear editing state
@@ -261,15 +262,18 @@ export default function Home() {
     setEntries([])
   }
 
-  const openJournalModal = (entry = null) => {
+  const openJournalModal = async (entry = null) => {
     console.log('openJournalModal called with entry:', entry) // Debug log
-    setEditingEntry(entry)
     
-    // Find the index of the entry if it exists
     if (entry && entry.id) {
+      // Refresh entry data from the latest state to ensure we have AI analysis
+      const latestEntry = entries.find(e => e.id === entry.id)
+      setEditingEntry(latestEntry || entry)
+      
       const index = entries.findIndex(e => e.id === entry.id)
       setCurrentEntryIndex(index)
     } else {
+      setEditingEntry(null)
       setCurrentEntryIndex(-1) // New entry
     }
     
