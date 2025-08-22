@@ -662,6 +662,7 @@ export default function JournalEntry({ onAddEntry, onTriggerAIAnalysis, onOpenIm
         <div className="border-b border-gray-200 dark:border-gray-700">
           <nav className="flex">
             <button
+              type="button"
               onClick={() => setActiveTab('entry')}
               className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === 'entry'
@@ -673,6 +674,7 @@ export default function JournalEntry({ onAddEntry, onTriggerAIAnalysis, onOpenIm
             </button>
             {editingEntry && (editingEntry.ai_analysis || editingEntry.ai_remedies || editingEntry.ai_prompts) && (
               <button
+                type="button"
                 onClick={() => setActiveTab('ai-analysis')}
                 className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
                   activeTab === 'ai-analysis'
