@@ -445,9 +445,6 @@ export default function Home() {
           {activeTab === 'wheel-of-life' && (
             <WheelOfLife />
           )}
-          {activeTab === 'ai-insights' && (
-            <AIInsights entries={entries} />
-          )}
         </TabContainer>
 
       {/* Journal Entry Modal - Rendered via portal */}

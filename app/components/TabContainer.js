@@ -28,12 +28,6 @@ export default function TabContainer({ children, activeTab, onTabChange }) {
       label: 'Goals',
       icon: Circle,
       count: null
-    },
-    {
-      id: 'ai-insights',
-      label: 'AI Insights',
-      icon: Brain,
-      count: null
     }
   ]
 
