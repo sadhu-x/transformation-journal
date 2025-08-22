@@ -649,44 +649,16 @@ export default function JournalEntry({ onAddEntry, onOpenImageModal, imageCommen
             />
           </div>
           
-          {/* AI Analysis Section - Always visible for debugging */}
-          <div className="border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-4 max-h-60 overflow-y-auto">
-            {/* AI Analysis Debug */}
-            <div className="p-2 bg-yellow-100 dark:bg-yellow-800 text-xs mb-4 rounded">
-              <strong>Debug:</strong> 
-              editingEntry: {editingEntry ? 'exists' : 'null'}, 
-              {editingEntry && `ID: ${editingEntry.id}`}, 
-              Has AI Analysis: {editingEntry?.ai_analysis ? 'true' : 'false'}, 
-              Has Remedies: {editingEntry?.ai_remedies ? 'true' : 'false'}, 
-              Has Prompts: {editingEntry?.ai_prompts ? 'true' : 'false'}
-              {editingEntry?.ai_analysis && <div className="mt-2 text-xs bg-white dark:bg-gray-900 p-2 rounded">Analysis: {JSON.stringify(editingEntry.ai_analysis, null, 2)}</div>}
-            </div>
-            
-            {/* AI Analysis */}
-            {editingEntry && (editingEntry.ai_analysis || editingEntry.ai_remedies || editingEntry.ai_prompts) ? (
-              <AIAnalysis 
-                entry={editingEntry}
-                onRefresh={async () => {
-                  // Re-analyze the current entry
-                  try {
-                    const { analyzeEntryWithClaude } = await import('../../lib/dataService')
-                    const result = await analyzeEntryWithClaude(editingEntry.content, editingEntry.id)
-                    if (result.success) {
-                      console.log('Analysis result:', result)
-                    }
-                  } catch (error) {
-                    console.error('Failed to re-analyze entry:', error)
-                  }
-                }}
-              />
-            ) : (
-              <div className="text-center text-gray-500 dark:text-gray-400 py-4">
-                <Brain size={24} className="mx-auto mb-2 opacity-50" />
-                <p>No AI analysis available</p>
-                {editingEntry && <p className="text-xs">Entry ID: {editingEntry.id}</p>}
+          {/* AI Analysis Indicator */}
+          {editingEntry && (editingEntry.ai_analysis || editingEntry.ai_remedies || editingEntry.ai_prompts) && (
+            <div className="border-t border-gray-200 dark:border-gray-700 bg-purple-50 dark:bg-purple-900/20 p-3">
+              <div className="flex items-center gap-2 text-purple-700 dark:text-purple-300">
+                <Brain size={16} />
+                <span className="text-sm font-medium">AI Analysis Available</span>
+                <span className="text-xs opacity-75">• View in AI Insights tab</span>
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Attachments Panel */}
           {showAttachments && (
@@ -839,9 +811,18 @@ export default function JournalEntry({ onAddEntry, onOpenImageModal, imageCommen
               <button
                 type="submit"
                 disabled={isSubmitting || !entry.content.trim()}
-                className="px-4 py-2 text-sm bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-4 py-2 text-sm bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
               >
-                {isSubmitting ? 'Saving...' : 'Save Entry'}
+                {isSubmitting ? (
+                  'Saving...'
+                ) : editingEntry && (editingEntry.ai_analysis || editingEntry.ai_remedies || editingEntry.ai_prompts) ? (
+                  <>
+                    <Brain size={16} />
+                    AI Analysis
+                  </>
+                ) : (
+                  'Save Entry'
+                )}
               </button>
             </div>
           </div>

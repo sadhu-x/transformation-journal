@@ -8,6 +8,7 @@ import EntryList from './components/EntryList'
 import NonNegotiables from './components/NonNegotiables'
 import BookList from './components/BookList'
 import WheelOfLife from './components/WheelOfLife'
+import AIInsights from './components/AIInsights'
 import TabContainer from './components/TabContainer'
 import CosmicContextCompact from './components/CosmicContextCompact'
 import ExportDropdown from './components/ExportData'
@@ -443,6 +444,9 @@ export default function Home() {
           )}
           {activeTab === 'wheel-of-life' && (
             <WheelOfLife />
+          )}
+          {activeTab === 'ai-insights' && (
+            <AIInsights entries={entries} />
           )}
         </TabContainer>
 
