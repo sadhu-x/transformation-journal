@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { supabase } from '../../lib/supabase'
-import { Plus, Clock, ChevronDown, Paperclip, Link, X, Image as ImageIcon, FileText, Copy, ChevronLeft, ChevronRight, Upload, Bold, Italic, List, ListOrdered, Heading1, Heading2, Quote, Code, Link as LinkIcon, Edit3 } from 'lucide-react'
+import { Plus, Clock, ChevronDown, Paperclip, Link, X, Image as ImageIcon, FileText, Copy, ChevronLeft, ChevronRight, Upload, Bold, Italic, List, ListOrdered, Heading1, Heading2, Quote, Code, Link as LinkIcon, Edit3, Brain } from 'lucide-react'
 import AIAnalysis from './AIAnalysis'
 
 // Markdown Editor Component
@@ -647,20 +647,23 @@ export default function JournalEntry({ onAddEntry, onOpenImageModal, imageCommen
               onChange={(value) => setEntry({...entry, content: value})}
               placeholder="Write freely about your day, thoughts, feelings, experiences, insights, or anything that's on your mind..."
             />
-            
+          </div>
+          
+          {/* AI Analysis Section - Always visible for debugging */}
+          <div className="border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-4 max-h-60 overflow-y-auto">
             {/* AI Analysis Debug */}
-            <div className="p-2 bg-yellow-100 dark:bg-yellow-800 text-xs">
+            <div className="p-2 bg-yellow-100 dark:bg-yellow-800 text-xs mb-4 rounded">
               <strong>Debug:</strong> 
               editingEntry: {editingEntry ? 'exists' : 'null'}, 
               {editingEntry && `ID: ${editingEntry.id}`}, 
               Has AI Analysis: {editingEntry?.ai_analysis ? 'true' : 'false'}, 
               Has Remedies: {editingEntry?.ai_remedies ? 'true' : 'false'}, 
               Has Prompts: {editingEntry?.ai_prompts ? 'true' : 'false'}
-              {editingEntry?.ai_analysis && <div>Analysis: {JSON.stringify(editingEntry.ai_analysis, null, 2)}</div>}
+              {editingEntry?.ai_analysis && <div className="mt-2 text-xs bg-white dark:bg-gray-900 p-2 rounded">Analysis: {JSON.stringify(editingEntry.ai_analysis, null, 2)}</div>}
             </div>
             
             {/* AI Analysis */}
-            {editingEntry && (editingEntry.ai_analysis || editingEntry.ai_remedies || editingEntry.ai_prompts) && (
+            {editingEntry && (editingEntry.ai_analysis || editingEntry.ai_remedies || editingEntry.ai_prompts) ? (
               <AIAnalysis 
                 entry={editingEntry}
                 onRefresh={async () => {
@@ -669,7 +672,6 @@ export default function JournalEntry({ onAddEntry, onOpenImageModal, imageCommen
                     const { analyzeEntryWithClaude } = await import('../../lib/dataService')
                     const result = await analyzeEntryWithClaude(editingEntry.content, editingEntry.id)
                     if (result.success) {
-                      // This won't work - setEditingEntry doesn't exist in this component
                       console.log('Analysis result:', result)
                     }
                   } catch (error) {
@@ -677,6 +679,12 @@ export default function JournalEntry({ onAddEntry, onOpenImageModal, imageCommen
                   }
                 }}
               />
+            ) : (
+              <div className="text-center text-gray-500 dark:text-gray-400 py-4">
+                <Brain size={24} className="mx-auto mb-2 opacity-50" />
+                <p>No AI analysis available</p>
+                {editingEntry && <p className="text-xs">Entry ID: {editingEntry.id}</p>}
+              </div>
             )}
           </div>
 
