@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Brain, Lightbulb, Heart, Target, Clock, Sparkles, RefreshCw, MessageSquare, Send, ChevronDown, ChevronUp, Gem, HandHeart, Zap, Meditation, Users, Leaf, Apple, Flower } from 'lucide-react'
+import { Brain, Lightbulb, Heart, Target, Clock, Sparkles, RefreshCw, MessageSquare, Send, ChevronDown, ChevronUp, Gem, HandHeart, Zap, Meditation, Users, Circle, Star, Sparkles as SparklesIcon } from 'lucide-react'
 
 export default function AIAnalysis({ entry, onRefresh, onUpdateEntry }) {
   const [isLoading, setIsLoading] = useState(false)
@@ -121,11 +121,11 @@ export default function AIAnalysis({ entry, onRefresh, onUpdateEntry }) {
       case 'pranayama':
         return <Zap size={14} className="text-cyan-500" />
       case 'herbs':
-        return <Leaf size={14} className="text-emerald-500" />
+        return <Circle size={14} className="text-emerald-500" />
       case 'food':
-        return <Apple size={14} className="text-red-500" />
+        return <Star size={14} className="text-red-500" />
       case 'aromatherapy':
-        return <Flower size={14} className="text-indigo-500" />
+        return <SparklesIcon size={14} className="text-indigo-500" />
       case 'yoga':
         return <Meditation size={14} className="text-teal-500" />
       default:
