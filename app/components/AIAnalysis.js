@@ -154,6 +154,34 @@ export default function AIAnalysis({ entry, onRefresh }) {
               </div>
             </div>
           )}
+
+          {entry.ai_analysis.cosmic_influences && (
+            <div className="flex items-start gap-3">
+              <Brain size={16} className="text-purple-500 mt-1 flex-shrink-0" />
+              <div className="flex-1">
+                <h4 className="font-medium text-gray-900 dark:text-white mb-1">
+                  Cosmic Influences
+                </h4>
+                <p className="text-sm text-gray-700 dark:text-gray-300">
+                  {entry.ai_analysis.cosmic_influences}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {entry.ai_analysis.dosha_balance && (
+            <div className="flex items-start gap-3">
+              <Target size={16} className="text-orange-500 mt-1 flex-shrink-0" />
+              <div className="flex-1">
+                <h4 className="font-medium text-gray-900 dark:text-white mb-1">
+                  Dosha Balance
+                </h4>
+                <p className="text-sm text-gray-700 dark:text-gray-300">
+                  {entry.ai_analysis.dosha_balance}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -190,13 +218,18 @@ export default function AIAnalysis({ entry, onRefresh }) {
                 <p className="text-sm text-gray-700 dark:text-gray-300">
                   {remedy.description}
                 </p>
-                {remedy.category && (
-                  <div className="mt-2">
-                    <span className="px-2 py-1 bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 text-xs rounded-full">
-                      {remedy.category}
-                    </span>
-                  </div>
-                )}
+                                    <div className="mt-2 flex gap-2">
+                      {remedy.category && (
+                        <span className="px-2 py-1 bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 text-xs rounded-full">
+                          {remedy.category}
+                        </span>
+                      )}
+                      {remedy.domain && (
+                        <span className="px-2 py-1 bg-purple-100 dark:bg-purple-800 text-purple-700 dark:text-purple-300 text-xs rounded-full">
+                          {remedy.domain}
+                        </span>
+                      )}
+                    </div>
               </div>
             ))}
           </div>
@@ -216,10 +249,15 @@ export default function AIAnalysis({ entry, onRefresh }) {
                 <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
                   {prompt.question}
                 </p>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   {prompt.category && (
                     <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs rounded-full">
                       {prompt.category}
+                    </span>
+                  )}
+                  {prompt.domain && (
+                    <span className="px-2 py-1 bg-purple-100 dark:bg-purple-800 text-purple-700 dark:text-purple-300 text-xs rounded-full">
+                      {prompt.domain}
                     </span>
                   )}
                   {prompt.difficulty && (
