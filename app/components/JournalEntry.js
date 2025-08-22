@@ -647,6 +647,17 @@ export default function JournalEntry({ onAddEntry, onOpenImageModal, imageCommen
               placeholder="Write freely about your day, thoughts, feelings, experiences, insights, or anything that's on your mind..."
             />
             
+            {/* AI Analysis Debug */}
+            {editingEntry && (
+              <div className="p-2 bg-yellow-100 dark:bg-yellow-800 text-xs">
+                <strong>Debug:</strong> Entry ID: {editingEntry.id}, 
+                Has AI Analysis: {!!editingEntry.ai_analysis}, 
+                Has Remedies: {!!editingEntry.ai_remedies}, 
+                Has Prompts: {!!editingEntry.ai_prompts}
+                {editingEntry.ai_analysis && <div>Analysis: {JSON.stringify(editingEntry.ai_analysis, null, 2)}</div>}
+              </div>
+            )}
+            
             {/* AI Analysis */}
             {editingEntry && (editingEntry.ai_analysis || editingEntry.ai_remedies || editingEntry.ai_prompts) && (
               <AIAnalysis 
@@ -657,13 +668,8 @@ export default function JournalEntry({ onAddEntry, onOpenImageModal, imageCommen
                     const { analyzeEntryWithClaude } = await import('../../lib/dataService')
                     const result = await analyzeEntryWithClaude(editingEntry.content, editingEntry.id)
                     if (result.success) {
-                      // Update the editing entry with new analysis
-                      setEditingEntry(prev => ({
-                        ...prev,
-                        ai_analysis: result.analysis,
-                        ai_remedies: result.remedies,
-                        ai_prompts: result.prompts
-                      }))
+                      // This won't work - setEditingEntry doesn't exist in this component
+                      console.log('Analysis result:', result)
                     }
                   } catch (error) {
                     console.error('Failed to re-analyze entry:', error)
