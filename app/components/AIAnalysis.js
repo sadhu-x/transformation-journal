@@ -348,134 +348,121 @@ export default function AIAnalysis({ entry, onRefresh, onUpdateEntry }) {
             Vedic Remedies & Practices
           </h3>
           
-          {entry.ai_analysis.vedic_remedies.mudras && entry.ai_analysis.vedic_remedies.mudras.length > 0 && (
-            <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-              <h4 className="font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-                <Heart size={16} className="text-pink-500" />
-                Mudras (Hand Gestures)
-              </h4>
-              <div className="space-y-3">
-                {entry.ai_analysis.vedic_remedies.mudras.map((mudra, index) => (
-                  <div key={index} className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
-                    <h5 className="font-medium text-gray-900 dark:text-white mb-1">{mudra.name}</h5>
-                    <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">{mudra.instructions}</p>
-                    <div className="flex flex-wrap gap-2 text-xs">
-                      <span className="px-2 py-1 bg-pink-100 dark:bg-pink-800 text-pink-700 dark:text-pink-300 rounded-full">
-                        Timing: {mudra.timing}
-                      </span>
-                      <span className="px-2 py-1 bg-pink-100 dark:bg-pink-800 text-pink-700 dark:text-pink-300 rounded-full">
-                        {mudra.benefits}
-                      </span>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {entry.ai_analysis.vedic_remedies.mudras && entry.ai_analysis.vedic_remedies.mudras.length > 0 && (
+              <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                <h4 className="font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                  <Heart size={16} className="text-pink-500" />
+                  Mudras
+                </h4>
+                <div className="space-y-3">
+                  {entry.ai_analysis.vedic_remedies.mudras.map((mudra, index) => (
+                    <div key={index} className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+                      <h5 className="font-medium text-gray-900 dark:text-white mb-1 text-sm">{mudra.name}</h5>
+                      <p className="text-xs text-gray-700 dark:text-gray-300 mb-2">{mudra.instructions}</p>
+                      <div className="flex flex-wrap gap-1 text-xs">
+                        <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full">
+                          {mudra.timing}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
           
-          {entry.ai_analysis.vedic_remedies.pranayama && entry.ai_analysis.vedic_remedies.pranayama.length > 0 && (
-            <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-              <h4 className="font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-                <Zap size={16} className="text-cyan-500" />
-                Pranayama (Breathing)
-              </h4>
-              <div className="space-y-3">
-                {entry.ai_analysis.vedic_remedies.pranayama.map((breath, index) => (
-                  <div key={index} className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
-                    <h5 className="font-medium text-gray-900 dark:text-white mb-1">{breath.name}</h5>
-                    <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">{breath.instructions}</p>
-                    <div className="flex flex-wrap gap-2 text-xs">
-                      <span className="px-2 py-1 bg-cyan-100 dark:bg-cyan-800 text-cyan-700 dark:text-cyan-300 rounded-full">
-                        Duration: {breath.duration}
-                      </span>
-                      <span className="px-2 py-1 bg-cyan-100 dark:bg-cyan-800 text-cyan-700 dark:text-cyan-300 rounded-full">
-                        {breath.benefits}
-                      </span>
+            {entry.ai_analysis.vedic_remedies.pranayama && entry.ai_analysis.vedic_remedies.pranayama.length > 0 && (
+              <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                <h4 className="font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                  <Zap size={16} className="text-cyan-500" />
+                  Pranayama
+                </h4>
+                <div className="space-y-3">
+                  {entry.ai_analysis.vedic_remedies.pranayama.map((breath, index) => (
+                    <div key={index} className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+                      <h5 className="font-medium text-gray-900 dark:text-white mb-1 text-sm">{breath.name}</h5>
+                      <p className="text-xs text-gray-700 dark:text-gray-300 mb-2">{breath.instructions}</p>
+                      <div className="flex flex-wrap gap-1 text-xs">
+                        <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full">
+                          {breath.duration}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
           
-          {entry.ai_analysis.vedic_remedies.gemstones && entry.ai_analysis.vedic_remedies.gemstones.length > 0 && (
-            <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-              <h4 className="font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-                <Gem size={16} className="text-blue-500" />
-                Gemstones
-              </h4>
-              <div className="space-y-3">
-                {entry.ai_analysis.vedic_remedies.gemstones.map((gem, index) => (
-                  <div key={index} className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
-                    <h5 className="font-medium text-gray-900 dark:text-white mb-1">{gem.name}</h5>
-                    <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">{gem.wearing_instructions}</p>
-                    <div className="flex flex-wrap gap-2 text-xs">
-                      <span className="px-2 py-1 bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 rounded-full">
-                        Timing: {gem.timing}
-                      </span>
-                      <span className="px-2 py-1 bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 rounded-full">
-                        {gem.benefits}
-                      </span>
+            {entry.ai_analysis.vedic_remedies.gemstones && entry.ai_analysis.vedic_remedies.gemstones.length > 0 && (
+              <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                <h4 className="font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                  <Gem size={16} className="text-blue-500" />
+                  Gemstones
+                </h4>
+                <div className="space-y-3">
+                  {entry.ai_analysis.vedic_remedies.gemstones.map((gem, index) => (
+                    <div key={index} className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+                      <h5 className="font-medium text-gray-900 dark:text-white mb-1 text-sm">{gem.name}</h5>
+                      <p className="text-xs text-gray-700 dark:text-gray-300 mb-2">{gem.wearing_instructions}</p>
+                      <div className="flex flex-wrap gap-1 text-xs">
+                        <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full">
+                          {gem.timing}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
           
-          {entry.ai_analysis.vedic_remedies.aromatherapy && entry.ai_analysis.vedic_remedies.aromatherapy.length > 0 && (
-            <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-              <h4 className="font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-                <SparklesIcon size={16} className="text-indigo-500" />
-                Aromatherapy & Fragrances
-              </h4>
-              <div className="space-y-3">
-                {entry.ai_analysis.vedic_remedies.aromatherapy.map((aroma, index) => (
-                  <div key={index} className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
-                    <h5 className="font-medium text-gray-900 dark:text-white mb-1">{aroma.name}</h5>
-                    <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">{aroma.application}</p>
-                    <div className="flex flex-wrap gap-2 text-xs">
-                      <span className="px-2 py-1 bg-indigo-100 dark:bg-indigo-800 text-indigo-700 dark:text-indigo-300 rounded-full">
-                        Timing: {aroma.timing}
-                      </span>
-                      <span className="px-2 py-1 bg-indigo-100 dark:bg-indigo-800 text-indigo-700 dark:text-indigo-300 rounded-full">
-                        {aroma.dosha_specific}
-                      </span>
+            {entry.ai_analysis.vedic_remedies.aromatherapy && entry.ai_analysis.vedic_remedies.aromatherapy.length > 0 && (
+              <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                <h4 className="font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                  <SparklesIcon size={16} className="text-indigo-500" />
+                  Aromatherapy
+                </h4>
+                <div className="space-y-3">
+                  {entry.ai_analysis.vedic_remedies.aromatherapy.map((aroma, index) => (
+                    <div key={index} className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+                      <h5 className="font-medium text-gray-900 dark:text-white mb-1 text-sm">{aroma.name}</h5>
+                      <p className="text-xs text-gray-700 dark:text-gray-300 mb-2">{aroma.application}</p>
+                      <div className="flex flex-wrap gap-1 text-xs">
+                        <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full">
+                          {aroma.timing}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
           
-          {entry.ai_analysis.vedic_remedies.food_recommendations && entry.ai_analysis.vedic_remedies.food_recommendations.length > 0 && (
-            <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-              <h4 className="font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-                <Star size={16} className="text-red-500" />
-                Food Recommendations
-              </h4>
-              <div className="space-y-3">
-                {entry.ai_analysis.vedic_remedies.food_recommendations.map((food, index) => (
-                  <div key={index} className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
-                    <h5 className="font-medium text-gray-900 dark:text-white mb-1">{food.meal}</h5>
-                    <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">{food.preparation}</p>
-                    <div className="flex flex-wrap gap-2 text-xs">
-                      <span className="px-2 py-1 bg-red-100 dark:bg-red-800 text-red-700 dark:text-red-300 rounded-full">
-                        Timing: {food.timing}
-                      </span>
-                      <span className="px-2 py-1 bg-red-100 dark:bg-red-800 text-red-700 dark:text-red-300 rounded-full">
-                        {food.benefits}
-                      </span>
+            {entry.ai_analysis.vedic_remedies.food_recommendations && entry.ai_analysis.vedic_remedies.food_recommendations.length > 0 && (
+              <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                <h4 className="font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                  <Star size={16} className="text-red-500" />
+                  Food Recommendations
+                </h4>
+                <div className="space-y-3">
+                  {entry.ai_analysis.vedic_remedies.food_recommendations.map((food, index) => (
+                    <div key={index} className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+                      <h5 className="font-medium text-gray-900 dark:text-white mb-1 text-sm">{food.meal}</h5>
+                      <p className="text-xs text-gray-700 dark:text-gray-300 mb-2">{food.preparation}</p>
+                      <div className="flex flex-wrap gap-1 text-xs">
+                        <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full">
+                          {food.timing}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       )}
 
-      {/* Daily Challenges */}
+      {/* Daily Challenges - Grid Layout */}
       {hasDailyChallenges && (
         <div className="space-y-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
@@ -483,90 +470,92 @@ export default function AIAnalysis({ entry, onRefresh, onUpdateEntry }) {
             Daily Challenges & Exercises
           </h3>
           
-          {entry.ai_analysis.daily_challenges.cognitive && entry.ai_analysis.daily_challenges.cognitive.length > 0 && (
-            <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-              <h4 className="font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-                <Brain size={16} className="text-green-500" />
-                Cognitive Challenges
-              </h4>
-              <div className="space-y-2">
-                {entry.ai_analysis.daily_challenges.cognitive.map((challenge, index) => (
-                  <div key={index} className="flex items-start gap-2">
-                    <span className="text-green-500 font-bold text-sm">•</span>
-                    <p className="text-sm text-gray-700 dark:text-gray-300">{challenge}</p>
-                  </div>
-                ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {entry.ai_analysis.daily_challenges.cognitive && entry.ai_analysis.daily_challenges.cognitive.length > 0 && (
+              <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                <h4 className="font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                  <Brain size={16} className="text-green-500" />
+                  Cognitive
+                </h4>
+                <div className="space-y-2">
+                  {entry.ai_analysis.daily_challenges.cognitive.map((challenge, index) => (
+                    <div key={index} className="flex items-start gap-2">
+                      <span className="text-green-500 font-bold text-sm">•</span>
+                      <p className="text-xs text-gray-700 dark:text-gray-300">{challenge}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
-          
-          {entry.ai_analysis.daily_challenges.physical && entry.ai_analysis.daily_challenges.physical.length > 0 && (
-            <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-              <h4 className="font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-                <Activity size={16} className="text-red-500" />
-                Physical Challenges
-              </h4>
-              <div className="space-y-2">
-                {entry.ai_analysis.daily_challenges.physical.map((challenge, index) => (
-                  <div key={index} className="flex items-start gap-2">
-                    <span className="text-red-500 font-bold text-sm">•</span>
-                    <p className="text-sm text-gray-700 dark:text-gray-300">{challenge}</p>
-                  </div>
-                ))}
+            )}
+            
+            {entry.ai_analysis.daily_challenges.physical && entry.ai_analysis.daily_challenges.physical.length > 0 && (
+              <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                <h4 className="font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                  <Activity size={16} className="text-red-500" />
+                  Physical
+                </h4>
+                <div className="space-y-2">
+                  {entry.ai_analysis.daily_challenges.physical.map((challenge, index) => (
+                    <div key={index} className="flex items-start gap-2">
+                      <span className="text-red-500 font-bold text-sm">•</span>
+                      <p className="text-xs text-gray-700 dark:text-gray-300">{challenge}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
-          
-          {entry.ai_analysis.daily_challenges.creative && entry.ai_analysis.daily_challenges.creative.length > 0 && (
-            <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-              <h4 className="font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-                <Sparkles size={16} className="text-purple-500" />
-                Creative Challenges
-              </h4>
-              <div className="space-y-2">
-                {entry.ai_analysis.daily_challenges.creative.map((challenge, index) => (
-                  <div key={index} className="flex items-start gap-2">
-                    <span className="text-purple-500 font-bold text-sm">•</span>
-                    <p className="text-sm text-gray-700 dark:text-gray-300">{challenge}</p>
-                  </div>
-                ))}
+            )}
+            
+            {entry.ai_analysis.daily_challenges.creative && entry.ai_analysis.daily_challenges.creative.length > 0 && (
+              <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                <h4 className="font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                  <Sparkles size={16} className="text-purple-500" />
+                  Creative
+                </h4>
+                <div className="space-y-2">
+                  {entry.ai_analysis.daily_challenges.creative.map((challenge, index) => (
+                    <div key={index} className="flex items-start gap-2">
+                      <span className="text-purple-500 font-bold text-sm">•</span>
+                      <p className="text-xs text-gray-700 dark:text-gray-300">{challenge}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
-          
-          {entry.ai_analysis.daily_challenges.wealth_building && entry.ai_analysis.daily_challenges.wealth_building.length > 0 && (
-            <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-              <h4 className="font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-                <DollarSign size={16} className="text-yellow-500" />
-                Wealth Building Challenges
-              </h4>
-              <div className="space-y-2">
-                {entry.ai_analysis.daily_challenges.wealth_building.map((challenge, index) => (
-                  <div key={index} className="flex items-start gap-2">
-                    <span className="text-yellow-500 font-bold text-sm">•</span>
-                    <p className="text-sm text-gray-700 dark:text-gray-300">{challenge}</p>
-                  </div>
-                ))}
+            )}
+            
+            {entry.ai_analysis.daily_challenges.wealth_building && entry.ai_analysis.daily_challenges.wealth_building.length > 0 && (
+              <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                <h4 className="font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                  <DollarSign size={16} className="text-yellow-500" />
+                  Wealth Building
+                </h4>
+                <div className="space-y-2">
+                  {entry.ai_analysis.daily_challenges.wealth_building.map((challenge, index) => (
+                    <div key={index} className="flex items-start gap-2">
+                      <span className="text-yellow-500 font-bold text-sm">•</span>
+                      <p className="text-xs text-gray-700 dark:text-gray-300">{challenge}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
-          
-          {entry.ai_analysis.daily_challenges.integration && entry.ai_analysis.daily_challenges.integration.length > 0 && (
-            <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-              <h4 className="font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-                <Target size={16} className="text-indigo-500" />
-                Integration Exercises
-              </h4>
-              <div className="space-y-2">
-                {entry.ai_analysis.daily_challenges.integration.map((challenge, index) => (
-                  <div key={index} className="flex items-start gap-2">
-                    <span className="text-indigo-500 font-bold text-sm">•</span>
-                    <p className="text-sm text-gray-700 dark:text-gray-300">{challenge}</p>
-                  </div>
-                ))}
+            )}
+            
+            {entry.ai_analysis.daily_challenges.integration && entry.ai_analysis.daily_challenges.integration.length > 0 && (
+              <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                <h4 className="font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                  <Target size={16} className="text-indigo-500" />
+                  Integration
+                </h4>
+                <div className="space-y-2">
+                  {entry.ai_analysis.daily_challenges.integration.map((challenge, index) => (
+                    <div key={index} className="flex items-start gap-2">
+                      <span className="text-indigo-500 font-bold text-sm">•</span>
+                      <p className="text-xs text-gray-700 dark:text-gray-300">{challenge}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       )}
 
